@@ -5,3 +5,4 @@ PyPDF2
 plotly
 requests
 pymupdf
+reportlab
