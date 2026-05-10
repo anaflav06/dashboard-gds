@@ -6,3 +6,4 @@ plotly
 requests
 pymupdf
 reportlab
+xlsxwriter
