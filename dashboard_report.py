@@ -2251,7 +2251,18 @@ def processar_fechamento_cache(
 st.markdown(
     """
     <div class="main-header">
-        <div class="main-header-title">🚚 Fechamento de Entregadores</div>
+        <div class="main-header-title">
+            🚚 Fechamento de Entregadores
+            <span style="
+                font-size: 18px;
+                color: #FFD166;
+                font-weight: 700;
+                margin-left: 10px;
+            ">
+                • Período de Testes
+            </span>
+        </div>
+
         <div class="main-header-subtitle">
             Consolidação por PDF: Excel valida Pedido, Status e CEP; PDFs trazem rota, data, placa, motorista e peso.
         </div>
