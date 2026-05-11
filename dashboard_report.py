@@ -21,7 +21,7 @@ except Exception:
 # CONFIGURAÇÃO DA PÁGINA
 # =========================================================
 st.set_page_config(
-    page_title="Fechamento de Entregadores (Período de Teste)",
+    page_title="Fechamento de Entregadores",
     page_icon="🚚",
     layout="wide"
 )
@@ -2251,25 +2251,10 @@ def processar_fechamento_cache(
 st.markdown(
     """
     <div class="main-header">
-
-        <div class="main-header-title">
-            🚚 Fechamento de Entregadores
-
-            <span style="
-                font-size: 18px;
-                color: #FFD166;
-                font-weight: 700;
-                margin-left: 10px;
-                vertical-align: middle;
-            ">
-                • Período de Testes
-            </span>
-        </div>
-
+        <div class="main-header-title">🚚 Fechamento de Entregadores</div>
         <div class="main-header-subtitle">
             Consolidação por PDF: Excel valida Pedido, Status e CEP; PDFs trazem rota, data, placa, motorista e peso.
         </div>
-
     </div>
     """,
     unsafe_allow_html=True,
@@ -3146,6 +3131,4 @@ st.caption(
     "Regra aplicada: pagamento por entrega realizada sem ocorrência, validando Pedido x Status no Excel e dados da entrega no PDF. "
     "KG_Excedente_Calculado: somente o que passou de 10kg em cada entrega, calculado a R$ 0,30 por kg excedente."
 )
-
-
 
