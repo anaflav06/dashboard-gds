@@ -121,7 +121,7 @@ BASE_VALORES_CEP = [
     ("11", 6.00, 6.00),
     ("12", 6.00, 6.00),
     ("13", 6.00, 6.00),
-    ("14", 6.00, 6.00),
+    ("14", 5.00, 5.00),
     ("15", 5.00, 5.00),
     ("28", 8.50, 8.50),
     ("29", 8.50, 8.50),
@@ -134,19 +134,35 @@ BASE_VALORES_CEP = [
     ("44", 8.50, 8.50),
     ("45", 5.00, 6.00),
     ("46", 5.00, 6.00),
+    ("47", 6.00, 6.00),
+    ("48", 10.00, 10.00),
     ("49", 8.50, 8.50),
+    ("50", 5.00, 5.00),
     ("51", 8.50, 8.50),
     ("52", 8.50, 8.50),
-    ("54", 6.00, 6.00),
+    ("53", 7.00, 7.00),
+    ("54", 5.00, 5.00),
+    ("55", 7.00, 7.00),
     ("56", 7.00, 8.50),
     ("57", 7.00, 7.00),
     ("58", 8.50, 8.50),
+    ("60", 7.00, 7.00),
+    ("61", 7.00, 7.00),
+    ("62", 7.00, 7.00),
+    ("63", 7.00, 7.00),
     ("67", 7.00, 8.50),
     ("68", 10.00, 10.00),
+    ("69", 10.00, 10.00),
     ("80", 8.50, 8.50),
     ("81", 8.50, 8.50),
     ("83", 8.50, 8.50),
     ("84", 8.50, 8.50),
+    ("90", 6.00, 6.00),
+    ("91", 6.00, 6.00),
+    ("92", 6.00, 6.00),
+    ("93", 7.00, 7.00),
+    ("94", 7.00, 7.00),
+    ("95", 6.00, 6.00),
     ("96", 6.00, 6.00),
     ("97", 6.00, 6.00),
     ("98", 6.00, 6.00),
@@ -211,6 +227,71 @@ BASE_PLACAS_VEICULOS = [
     ("FAS1E74", "CARRO"),
 ]
 
+
+
+
+# =========================================================
+# BASE INTERNA - CNPJ DOS MOTORISTAS
+# =========================================================
+BASE_CNPJ_MOTORISTAS = {
+    "ADRIANO APARECIDO FERREIRA DE OLIVEIRA": "64.053.611/0001-80",
+    "ALDACIR MARCON": "45.916.701/0001-03",
+    "ANDREIA ALVES DE SOUSA": "54.921.728/0001-85",
+    "BIANCA ZANARDIR GOMES DA SILVA": "425.879.028-19",
+    "CAIQUE ADRIAN FERREIRA DA SILVA BRITO": "51.019.384/0001-25",
+    "CAIQUE XAVIER TORRES DA SILVA": "63.428.066/0001-05",
+    "CARLOS EDUARDO ZACHARIAS": "091.386.348-30",
+    "CICERO DONESI": "52.140.817/0001-69",
+    "CLEBER OTAVIO OLIVEIRA DA SILVA": "57.554.463/0001-12",
+    "DAVI DE SOUZA LAURINDO": "37.627.765/0001-66",
+    "DANIEL PEREIRA SILVA": "50.603.845/0001-40",
+    "DIEGO DA SILVA MONTEIRO": "54.794.473/0001-37",
+    "EVANDRO RODRIGUES BENTO": "55.267.940/0001-33",
+    "EDIPO SOARES DE CARVALHO": "355.106.038-01",
+    "FELIPE AUGUSTO": "SEM CNPJ",
+    "FELIPE DA SILVA ABRANTES": "405.031.978-07",
+    "FERNANDO LOURENÇO DE PAULA": "34.605.101/0001-08",
+    "GERSON CANDIDO DA SILVA": "29.882.972/0001-39",
+    "GERSON LANDIM": "SEM CNPJ",
+    "GUSTAVO NOVAES": "458.421.698-35",
+    "ISAQUE FERNANDO": "SEM CNPJ",
+    "GUILHERME SOARES SILVA": "42.690.386/0001-50",
+    "JOEL ELIAS FILHO": "49.631.479/0001-53",
+    "JEFFERSON NOVAIS DE OLIVEIRA": "30.226.280/0001-11",
+    "JOSE LUIS SABATINI": "42.891.659/0001-25",
+    "JAMILTON ALVES MOREIRA RODRIGUES": "365.378.148-55",
+    "JUAN OLIVEIRA DE MENEZES": "44.839.742/0001-80",
+    "KELVIN MESSIAS DOS SANTOS OLIVEIRA": "59.462.329/0001-17",
+    "MARCELO SANTOS PRAÇA": "40.218.730/0001-88",
+    "MARIA NATALIA DA SILVA FIGUEIREDO BARBOSA": "47.702.239/0001-77",
+    "MAURO ALGAVES": "323.805.438-44",
+    "MARCIO LEITE DE OLIVEIRA": "52.484.794/0001-00",
+    "MATHEUS PINTO DE OLIVEIRA": "61.632.284/0001-23",
+    "PAULO VICTOR SOUSA LOPES": "50.787.799/0001-86",
+    "RENATA FERNANDES TERENSE SANDRI": "30.990.911/0001-74",
+    "RICARDO RAPOSO": "63.975.972/0001-11",
+    "RODOLFO LEONARDO DE MAGALHAES BEZZERA": "35.773.299/0001-00",
+    "ROBSON RIBEIRO DA SILVA": "64.967.271/0001-01",
+    "RODNEI FOGACA DA SILVA FILHO": "32.839.434/0001-76",
+    "SANDRO COSTA DA SILVA": "63.073.440/0001-99",
+    "SILAS MAIA DE JESUS": "42.786.379/0001-57",
+    "THATIANA PEREIRA RIBEIRO POFFO": "37.631.336/001-62",
+    "VINICIUS DE SOUZA RODRIGUES": "57.405.700/0001-02",
+    "VIVIANE DA COSTA SILA": "46.450.740/0001-20",
+    "WALLACE ANDRE": "SEM CNPJ",
+    "WALLACE OLIVEIRA DA SILVA": "42.473.134/0001-70",
+    "WALLAS AMARANTE ALVES DOS SANTOS": "45.765.135/0001-86",
+    "WELLINGTON DIAS DA SILVA": "24.805.136/0001-37",
+    "WENDHELL ANDERSON DA SIVA CAVALCANTE": "65.538.430/0001-07",
+    "WILLIAM SOUZA SANTOS": "164.149.808-03",
+}
+
+# Arquivo local para motoristas/CNPJ cadastrados pela dashboard.
+# Esses cadastros sobrescrevem a base interna quando o nome for igual.
+ARQUIVO_MOTORISTAS_CNPJ_EXTRA = Path("motoristas_cnpj_extra.csv")
+COLUNAS_MOTORISTAS_CNPJ_EXTRA = ["Nome Motorista", "CNPJ"]
+ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS = Path("motoristas_cnpj_excluidos.csv")
+COLUNAS_MOTORISTAS_CNPJ_EXCLUIDOS = ["Nome Motorista"]
 
 # =========================================================
 # CADASTRO LOCAL DE PLACAS / TIPO DE VEÍCULO
@@ -586,6 +667,201 @@ def normalizar_texto(valor) -> str:
     texto = re.sub(r"[^a-z0-9]+", " ", texto)
     return re.sub(r"\s+", " ", texto).strip()
 
+
+def apenas_digitos(valor) -> str:
+    return re.sub(r"\D", "", str(valor or ""))
+
+
+def formatar_cnpj(valor) -> str:
+    """Formata CNPJ com 14 dígitos no padrão 00.000.000/0000-00."""
+    digitos = apenas_digitos(valor)
+    if len(digitos) != 14:
+        texto = limpar_texto(valor).upper()
+        return texto if texto else "SEM CNPJ"
+    return f"{digitos[:2]}.{digitos[2:5]}.{digitos[5:8]}/{digitos[8:12]}-{digitos[12:14]}"
+
+
+def carregar_motoristas_cnpj_excluidos_csv() -> pd.DataFrame:
+    """Carrega motoristas removidos manualmente da base aplicada de CNPJ."""
+    if not ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS.exists():
+        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXCLUIDOS)
+
+    try:
+        df = pd.read_csv(ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS, dtype=str).fillna("")
+    except Exception:
+        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXCLUIDOS)
+
+    if "Nome Motorista" not in df.columns:
+        df["Nome Motorista"] = ""
+
+    df = df[["Nome Motorista"]].copy()
+    df["Nome Motorista"] = df["Nome Motorista"].astype(str).apply(limpar_texto).str.upper()
+    df = df[df["Nome Motorista"] != ""].copy()
+    df["_nome_norm"] = df["Nome Motorista"].apply(normalizar_texto)
+    df = df.drop_duplicates(subset=["_nome_norm"], keep="last")
+    return df.drop(columns=["_nome_norm"]).sort_values("Nome Motorista").reset_index(drop=True)
+
+
+def salvar_motoristas_cnpj_excluidos(df_excluidos: pd.DataFrame) -> None:
+    df = df_excluidos.copy() if df_excluidos is not None else pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXCLUIDOS)
+    if "Nome Motorista" not in df.columns:
+        df["Nome Motorista"] = ""
+    df = df[["Nome Motorista"]].copy()
+    df["Nome Motorista"] = df["Nome Motorista"].astype(str).apply(limpar_texto).str.upper()
+    df = df[df["Nome Motorista"] != ""].copy()
+    df["_nome_norm"] = df["Nome Motorista"].apply(normalizar_texto)
+    df = df.drop_duplicates(subset=["_nome_norm"], keep="last")
+    df = df.drop(columns=["_nome_norm"]).sort_values("Nome Motorista").reset_index(drop=True)
+    df.to_csv(ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS, index=False, encoding="utf-8-sig")
+
+
+def carregar_motoristas_cnpj_extra_csv() -> pd.DataFrame:
+    """Carrega motoristas/CNPJ cadastrados manualmente na dashboard."""
+    if not ARQUIVO_MOTORISTAS_CNPJ_EXTRA.exists():
+        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXTRA)
+
+    try:
+        df = pd.read_csv(ARQUIVO_MOTORISTAS_CNPJ_EXTRA, dtype=str).fillna("")
+    except Exception:
+        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXTRA)
+
+    if "Nome Motorista" not in df.columns:
+        df["Nome Motorista"] = ""
+
+    # Compatibilidade com arquivo antigo que usava a coluna CNPJ/CPF.
+    if "CNPJ" not in df.columns:
+        if "CNPJ/CPF" in df.columns:
+            df["CNPJ"] = df["CNPJ/CPF"]
+        else:
+            df["CNPJ"] = ""
+
+    df = df[["Nome Motorista", "CNPJ"]].copy()
+    df["Nome Motorista"] = df["Nome Motorista"].astype(str).apply(limpar_texto).str.upper()
+    df["CNPJ"] = df["CNPJ"].astype(str).apply(formatar_cnpj)
+    df = df[(df["Nome Motorista"] != "") & (df["CNPJ"] != "") & (df["CNPJ"] != "SEM CNPJ")].copy()
+    df["_nome_norm"] = df["Nome Motorista"].apply(normalizar_texto)
+    df = df.drop_duplicates(subset=["_nome_norm"], keep="last")
+    df = df.drop(columns=["_nome_norm"]).sort_values("Nome Motorista").reset_index(drop=True)
+    return df
+
+
+def salvar_motorista_cnpj_extra(nome_motorista: str, cnpj: str) -> Tuple[bool, str]:
+    """Salva/atualiza motorista e CNPJ em arquivo local. O CNPJ precisa ter 14 dígitos."""
+    nome = limpar_texto(nome_motorista).upper()
+    digitos_cnpj = apenas_digitos(cnpj)
+
+    if not nome:
+        return False, "Informe o nome do motorista."
+    if not digitos_cnpj:
+        return False, "Informe o CNPJ do motorista."
+    if len(digitos_cnpj) != 14:
+        return False, "O CNPJ deve conter exatamente 14 dígitos. Verifique e tente novamente."
+
+    cnpj_formatado = formatar_cnpj(digitos_cnpj)
+    df = carregar_motoristas_cnpj_extra_csv()
+    novo = pd.DataFrame([{"Nome Motorista": nome, "CNPJ": cnpj_formatado}])
+    df = pd.concat([df, novo], ignore_index=True)
+    df["_nome_norm"] = df["Nome Motorista"].apply(normalizar_texto)
+    df = df.drop_duplicates(subset=["_nome_norm"], keep="last")
+    df = df.drop(columns=["_nome_norm"]).sort_values("Nome Motorista").reset_index(drop=True)
+    df.to_csv(ARQUIVO_MOTORISTAS_CNPJ_EXTRA, index=False, encoding="utf-8-sig")
+
+    # Se o motorista estava excluído, ao cadastrar novamente ele volta para a base aplicada.
+    remover_motorista_da_lista_excluidos(nome)
+    return True, f"Motorista {nome} cadastrado/atualizado com CNPJ {cnpj_formatado}."
+
+
+def excluir_motorista_cnpj(nome_motorista: str) -> Tuple[bool, str]:
+    """Exclui motorista da base aplicada de CNPJ.
+
+    Se for cadastro manual, remove do CSV manual.
+    Se estiver na base interna, grava em lista de excluídos para não aparecer na base aplicada.
+    """
+    nome = limpar_texto(nome_motorista).upper()
+    nome_norm = normalizar_texto(nome)
+    if not nome_norm:
+        return False, "Informe ou selecione um motorista para excluir."
+
+    removido_manual = False
+    df_extra = carregar_motoristas_cnpj_extra_csv()
+    if not df_extra.empty:
+        qtd_antes = len(df_extra)
+        df_extra = df_extra[df_extra["Nome Motorista"].apply(normalizar_texto) != nome_norm].copy()
+        removido_manual = len(df_extra) < qtd_antes
+        df_extra.to_csv(ARQUIVO_MOTORISTAS_CNPJ_EXTRA, index=False, encoding="utf-8-sig")
+
+    df_excluidos = carregar_motoristas_cnpj_excluidos_csv()
+    if nome_norm not in set(df_excluidos["Nome Motorista"].apply(normalizar_texto)):
+        df_excluidos = pd.concat([df_excluidos, pd.DataFrame([{"Nome Motorista": nome}])], ignore_index=True)
+        salvar_motoristas_cnpj_excluidos(df_excluidos)
+
+    if removido_manual:
+        return True, f"Motorista {nome} removido do cadastro manual e bloqueado na base aplicada."
+    return True, f"Motorista {nome} bloqueado/removido da base aplicada."
+
+
+def remover_motorista_da_lista_excluidos(nome_motorista: str) -> None:
+    nome_norm = normalizar_texto(nome_motorista)
+    if not nome_norm or not ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS.exists():
+        return
+    df = carregar_motoristas_cnpj_excluidos_csv()
+    if df.empty:
+        return
+    df = df[df["Nome Motorista"].apply(normalizar_texto) != nome_norm].copy()
+    salvar_motoristas_cnpj_excluidos(df)
+
+
+def montar_base_cnpj_motoristas_final() -> pd.DataFrame:
+    """Monta base final de CNPJ, juntando base interna + cadastros manuais e removendo excluídos."""
+    base_interna = pd.DataFrame(
+        [{"Nome Motorista": nome, "CNPJ": formatar_cnpj(cnpj), "Origem": "Base interna"} for nome, cnpj in BASE_CNPJ_MOTORISTAS.items()]
+    )
+
+    df_extra = carregar_motoristas_cnpj_extra_csv()
+    if not df_extra.empty:
+        df_extra = df_extra.copy()
+        df_extra["Origem"] = "Cadastro manual"
+        base = pd.concat([base_interna, df_extra], ignore_index=True)
+    else:
+        base = base_interna
+
+    base["Nome Motorista"] = base["Nome Motorista"].astype(str).apply(limpar_texto).str.upper()
+    base["CNPJ"] = base["CNPJ"].astype(str).apply(formatar_cnpj)
+    base["_nome_norm"] = base["Nome Motorista"].apply(normalizar_texto)
+    # O cadastro manual sobrescreve a base interna quando o nome for igual.
+    base = base.drop_duplicates(subset=["_nome_norm"], keep="last")
+
+    df_excluidos = carregar_motoristas_cnpj_excluidos_csv()
+    if not df_excluidos.empty:
+        excluidos_norm = set(df_excluidos["Nome Motorista"].apply(normalizar_texto))
+        base = base[~base["_nome_norm"].isin(excluidos_norm)].copy()
+
+    return base.drop(columns=["_nome_norm"]).sort_values("Nome Motorista").reset_index(drop=True)
+
+
+def obter_cnpj_motorista(nome_motorista: str) -> str:
+    """Busca o CNPJ do motorista na base manual e depois na base interna."""
+    nome_norm = normalizar_texto(nome_motorista)
+    if not nome_norm:
+        return "SEM CNPJ"
+
+    df_excluidos = carregar_motoristas_cnpj_excluidos_csv()
+    if not df_excluidos.empty and nome_norm in set(df_excluidos["Nome Motorista"].apply(normalizar_texto)):
+        return "SEM CNPJ"
+
+    # Primeiro consulta o cadastro manual da dashboard.
+    df_extra = carregar_motoristas_cnpj_extra_csv()
+    if not df_extra.empty:
+        for _, row in df_extra.iterrows():
+            if normalizar_texto(row.get("Nome Motorista", "")) == nome_norm:
+                cnpj = formatar_cnpj(row.get("CNPJ", ""))
+                return cnpj if cnpj else "SEM CNPJ"
+
+    # Depois consulta a base interna fixa.
+    for nome_base, cnpj in BASE_CNPJ_MOTORISTAS.items():
+        if normalizar_texto(nome_base) == nome_norm:
+            return formatar_cnpj(cnpj)
+    return "SEM CNPJ"
 
 def moeda(valor: float) -> str:
     try:
@@ -1269,6 +1545,196 @@ def gerar_fechamento_diario(df_pagamento: pd.DataFrame) -> pd.DataFrame:
     return resumo
 
 
+def preparar_base_bonus_excel(
+    df_excel_raw: pd.DataFrame,
+    col_pedido: str,
+    col_status: str,
+    col_data_excel: Optional[str],
+    col_motorista_excel: Optional[str],
+    status_entregue: List[str],
+    status_ocorrencia: List[str],
+) -> pd.DataFrame:
+    """Prepara base do Excel para cálculo automático dos bônus de sábado e feriado."""
+    if df_excel_raw.empty or not col_data_excel or not col_motorista_excel:
+        return pd.DataFrame()
+    if col_data_excel not in df_excel_raw.columns or col_motorista_excel not in df_excel_raw.columns:
+        return pd.DataFrame()
+
+    out = pd.DataFrame()
+    out["Pedido"] = df_excel_raw[col_pedido].astype(str).str.strip() if col_pedido in df_excel_raw.columns else ""
+    out["Status"] = df_excel_raw[col_status].astype(str).str.strip() if col_status in df_excel_raw.columns else ""
+    out["Status Normalizado"] = out["Status"].apply(normalizar_texto)
+    out["Data Entrega"] = df_excel_raw[col_data_excel].apply(to_date).dt.date
+    out["Motorista Final"] = df_excel_raw[col_motorista_excel].astype(str).str.strip().str.upper()
+
+    entregue_norm = [normalizar_texto(x) for x in status_entregue if str(x).strip()]
+    ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
+
+    out["É Entregue"] = out["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
+    out["É Ocorrência"] = out["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
+    out["Entrega Paga"] = out["É Entregue"] & (~out["É Ocorrência"])
+
+    out = out[
+        out["Entrega Paga"]
+        & out["Data Entrega"].notna()
+        & (out["Motorista Final"].astype(str).str.strip() != "")
+        & (out["Pedido"].astype(str).str.strip() != "")
+        & (out["Pedido"].astype(str).str.lower() != "nan")
+    ].copy()
+
+    # Evita contar a mesma entrega mais de uma vez se o Excel tiver linhas repetidas do mesmo pedido/status.
+    out = out.drop_duplicates(subset=["Motorista Final", "Data Entrega", "Pedido"], keep="last")
+    return out.reset_index(drop=True)
+
+
+def listar_sabados_do_mes(ano: int, mes: int) -> List[object]:
+    inicio = pd.Timestamp(year=int(ano), month=int(mes), day=1)
+    fim = inicio + pd.offsets.MonthEnd(0)
+    return [d.date() for d in pd.date_range(inicio, fim, freq="W-SAT")]
+
+
+def calcular_bonus_sabados_excel(
+    df_bonus_excel: pd.DataFrame,
+    motorista: str,
+    ano: int,
+    mes: int,
+    valor_por_entrega: float = 2.0,
+) -> Tuple[float, int, bool, List[object], List[object]]:
+    """Calcula bônus de sábado: só libera se trabalhou todos os sábados do mês."""
+    if df_bonus_excel.empty:
+        return 0.0, 0, False, [], []
+
+    todos_sabados = listar_sabados_do_mes(ano, mes)
+    if not todos_sabados:
+        return 0.0, 0, False, [], []
+
+    df = df_bonus_excel.copy()
+    df["Data Entrega DT"] = pd.to_datetime(df["Data Entrega"], errors="coerce").dt.date
+    df = df[
+        (df["Motorista Final"].astype(str).str.upper().str.strip() == str(motorista).upper().strip())
+        & (pd.to_datetime(df["Data Entrega"], errors="coerce").dt.month == int(mes))
+        & (pd.to_datetime(df["Data Entrega"], errors="coerce").dt.year == int(ano))
+    ].copy()
+
+    if df.empty:
+        return 0.0, 0, False, todos_sabados, []
+
+    dias_trabalhados = sorted(set(df["Data Entrega DT"].dropna()))
+    sabados_trabalhados = sorted([d for d in dias_trabalhados if d in set(todos_sabados)])
+    veio_todos_sabados = set(todos_sabados).issubset(set(sabados_trabalhados))
+
+    if not veio_todos_sabados:
+        return 0.0, 0, False, todos_sabados, sabados_trabalhados
+
+    qtd_entregas_sabado = int(df[df["Data Entrega DT"].isin(todos_sabados)].shape[0])
+    bonus = qtd_entregas_sabado * max(0.0, to_float(valor_por_entrega))
+    return float(bonus), qtd_entregas_sabado, True, todos_sabados, sabados_trabalhados
+
+
+def detalhar_bonus_sabados_excel(
+    df_bonus_excel: pd.DataFrame,
+    motorista: str,
+    ano: int,
+    mes: int,
+    valor_por_entrega: float = 2.0,
+) -> Dict[str, object]:
+    """Retorna os detalhes para conferência visual do bônus de sábado.
+
+    Regra:
+    - identifica todos os sábados do mês;
+    - busca no Excel em quais sábados o motorista teve entrega paga;
+    - conta as entregas feitas nos sábados;
+    - libera o valor apenas se o motorista teve entrega em todos os sábados do mês.
+    """
+    todos_sabados = listar_sabados_do_mes(ano, mes)
+    valor_unitario = max(0.0, to_float(valor_por_entrega))
+
+    if df_bonus_excel.empty or not todos_sabados:
+        return {
+            "todos_sabados": todos_sabados,
+            "sabados_trabalhados": [],
+            "sabados_faltantes": todos_sabados,
+            "qtd_entregas_sabado": 0,
+            "veio_todos_sabados": False,
+            "bonus_calculado": 0.0,
+        }
+
+    df = df_bonus_excel.copy()
+    df["Data Entrega DT"] = pd.to_datetime(df["Data Entrega"], errors="coerce").dt.date
+    data_entrega_convertida = pd.to_datetime(df["Data Entrega"], errors="coerce")
+
+    df = df[
+        (df["Motorista Final"].astype(str).str.upper().str.strip() == str(motorista).upper().strip())
+        & (data_entrega_convertida.dt.month == int(mes))
+        & (data_entrega_convertida.dt.year == int(ano))
+    ].copy()
+
+    if df.empty:
+        return {
+            "todos_sabados": todos_sabados,
+            "sabados_trabalhados": [],
+            "sabados_faltantes": todos_sabados,
+            "qtd_entregas_sabado": 0,
+            "veio_todos_sabados": False,
+            "bonus_calculado": 0.0,
+        }
+
+    sabados_set = set(todos_sabados)
+    df_sabados = df[df["Data Entrega DT"].isin(sabados_set)].copy()
+    sabados_trabalhados = sorted(set(df_sabados["Data Entrega DT"].dropna()))
+    sabados_faltantes = sorted([d for d in todos_sabados if d not in set(sabados_trabalhados)])
+    veio_todos_sabados = len(sabados_faltantes) == 0 and len(todos_sabados) > 0
+    qtd_entregas_sabado = int(len(df_sabados))
+    bonus_calculado = qtd_entregas_sabado * valor_unitario if veio_todos_sabados else 0.0
+
+    return {
+        "todos_sabados": todos_sabados,
+        "sabados_trabalhados": sabados_trabalhados,
+        "sabados_faltantes": sabados_faltantes,
+        "qtd_entregas_sabado": qtd_entregas_sabado,
+        "veio_todos_sabados": veio_todos_sabados,
+        "bonus_calculado": float(bonus_calculado),
+    }
+
+
+def parse_datas_feriados(texto_datas: str, ano_padrao: int) -> List[object]:
+    """Aceita feriados digitados um por linha ou separados por vírgula/; no formato dd/mm ou dd/mm/aaaa."""
+    datas = []
+    partes = re.split(r"[\n,;]+", str(texto_datas or ""))
+    for parte in partes:
+        item = parte.strip()
+        if not item:
+            continue
+        if re.fullmatch(r"\d{1,2}/\d{1,2}", item):
+            item = f"{item}/{ano_padrao}"
+        data = pd.to_datetime(item, dayfirst=True, errors="coerce")
+        if pd.notna(data):
+            datas.append(data.date())
+    return sorted(set(datas))
+
+
+def calcular_bonus_feriados_excel(
+    df_bonus_excel: pd.DataFrame,
+    motorista: str,
+    datas_feriado: List[object],
+    valor_por_entrega: float = 2.0,
+) -> Tuple[float, int]:
+    """Calcula bônus de feriado pelas entregas do Excel nas datas informadas."""
+    if df_bonus_excel.empty or not datas_feriado:
+        return 0.0, 0
+
+    df = df_bonus_excel.copy()
+    df["Data Entrega DT"] = pd.to_datetime(df["Data Entrega"], errors="coerce").dt.date
+    df = df[
+        (df["Motorista Final"].astype(str).str.upper().str.strip() == str(motorista).upper().strip())
+        & (df["Data Entrega DT"].isin(set(datas_feriado)))
+    ].copy()
+
+    qtd_entregas_feriado = int(len(df))
+    bonus = qtd_entregas_feriado * max(0.0, to_float(valor_por_entrega))
+    return float(bonus), qtd_entregas_feriado
+
+
 @st.cache_data(show_spinner=False)
 def criar_excel_fechamento(df_dia, df_entregas, df_pdf_info) -> bytes:
     output = io.BytesIO()
@@ -1325,12 +1791,15 @@ def gerar_recibo_pdf(
     acareacao: float = 0.0,
     vale: float = 0.0,
     desconto: float = 0.0,
-    bonus: float = 0.0,
+    bonus_extra: float = 0.0,
+    bonus_sabados: float = 0.0,
+    bonus_feriado: float = 0.0,
+    cnpj_motorista: str = "SEM CNPJ",
 ) -> bytes:
     """Gera recibo em PDF com logo GDS, cores claras e fechamento separado por dia e por valor real do CEP."""
     from reportlab.lib import colors
     from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import cm
     from reportlab.platypus import (
@@ -1345,13 +1814,16 @@ def gerar_recibo_pdf(
 
     buffer = io.BytesIO()
 
+    # Recibo em A4 RETRATO.
+    # Margens reduzidas e fontes compactas para tentar manter tudo em uma folha
+    # sempre que a quantidade de linhas permitir.
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=landscape(A4),
-        rightMargin=1.0 * cm,
-        leftMargin=1.0 * cm,
-        topMargin=0.55 * cm,
-        bottomMargin=0.7 * cm,
+        pagesize=A4,
+        rightMargin=0.65 * cm,
+        leftMargin=0.65 * cm,
+        topMargin=0.45 * cm,
+        bottomMargin=0.55 * cm,
     )
 
     styles = getSampleStyleSheet()
@@ -1364,16 +1836,16 @@ def gerar_recibo_pdf(
         "TituloReciboGDS",
         parent=styles["Title"],
         fontName="Helvetica-Bold",
-        fontSize=17,
+        fontSize=12,
         textColor=preto,
         alignment=TA_CENTER,
-        spaceAfter=8,
+        spaceAfter=4,
     )
     style_header = ParagraphStyle(
         "HeaderReciboGDS",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=10,
+        fontSize=7.2,
         textColor=preto,
         alignment=TA_LEFT,
     )
@@ -1381,15 +1853,15 @@ def gerar_recibo_pdf(
         "NormalReciboGDS",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=8.5,
+        fontSize=6.8,
         textColor=preto,
-        leading=11,
+        leading=8.2,
     )
     style_small_right = ParagraphStyle(
         "SmallRightGDS",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=7.5,
+        fontSize=6.2,
         alignment=TA_RIGHT,
         textColor=preto,
     )
@@ -1438,21 +1910,24 @@ def gerar_recibo_pdf(
     acareacao = max(0.0, to_float(acareacao))
     vale = max(0.0, to_float(vale))
     desconto = max(0.0, to_float(desconto))
-    bonus = max(0.0, to_float(bonus))
+    bonus_extra = max(0.0, to_float(bonus_extra))
+    bonus_sabados = max(0.0, to_float(bonus_sabados))
+    bonus_feriado = max(0.0, to_float(bonus_feriado))
     subtotal_base = float(total_geral)
-    total_geral = subtotal_base + acareacao + bonus - vale - desconto
+    total_geral = subtotal_base + acareacao + bonus_extra + bonus_sabados + bonus_feriado - vale - desconto
 
     periodo_txt = f"{fmt_data(data_inicio)} a {fmt_data(data_fim)}"
     quinzena_txt = limpar_texto(quinzena) or "Não informado"
+    cnpj_txt = limpar_texto(cnpj_motorista) or obter_cnpj_motorista(motorista)
 
     elementos = []
 
     try:
         logo_bytes = base64.b64decode(LOGO_GDS_BASE64)
-        logo = Image(io.BytesIO(logo_bytes), width=5.4 * cm, height=1.55 * cm)
+        logo = Image(io.BytesIO(logo_bytes), width=3.7 * cm, height=1.05 * cm)
         logo.hAlign = "CENTER"
         elementos.append(logo)
-        elementos.append(Spacer(1, 0.12 * cm))
+        elementos.append(Spacer(1, 0.06 * cm))
     except Exception:
         pass
 
@@ -1462,32 +1937,44 @@ def gerar_recibo_pdf(
         [
             [
                 Paragraph("Nome do Entregador", style_header),
+                Paragraph("CNPJ", style_header),
                 Paragraph("Quinzena", style_header),
+            ],
+            [
+                Paragraph(str(motorista).upper(), style_normal),
+                Paragraph(cnpj_txt, style_normal),
+                Paragraph(quinzena_txt, style_normal),
+            ],
+            [
                 Paragraph("Período", style_header),
                 Paragraph("Total de Entregas", style_header),
                 Paragraph("Total a Pagar", style_header),
             ],
             [
-                Paragraph(str(motorista).upper(), style_normal),
-                Paragraph(quinzena_txt, style_normal),
                 Paragraph(periodo_txt, style_normal),
                 Paragraph(str(total_entregas), style_normal),
                 Paragraph(moeda(total_geral), style_normal),
             ],
         ],
-        colWidths=[7.3 * cm, 4.4 * cm, 5.7 * cm, 4.2 * cm, 4.3 * cm],
+        colWidths=[9.2 * cm, 5.0 * cm, 5.0 * cm],
     )
     info_table.setStyle(TableStyle([
         ("GRID", (0, 0), (-1, -1), 0.65, laranja_linha),
         ("BACKGROUND", (0, 0), (-1, 0), laranja_claro),
+        ("BACKGROUND", (0, 2), (-1, 2), laranja_claro),
         ("BACKGROUND", (0, 1), (-1, 1), branco),
+        ("BACKGROUND", (0, 3), (-1, 3), branco),
         ("TEXTCOLOR", (0, 0), (-1, -1), preto),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("ALIGN", (2, 1), (-1, 1), "CENTER"),
+        ("ALIGN", (1, 1), (-1, -1), "CENTER"),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME", (0, 2), (-1, 2), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 6.8),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
     ]))
     elementos.append(info_table)
-    elementos.append(Spacer(1, 0.35 * cm))
+    elementos.append(Spacer(1, 0.18 * cm))
 
     linhas = [["Data", "Descrição", "Valor", "Quantidade", "Total Dia"]]
     linhas_estilo_total_dia = []
@@ -1562,7 +2049,7 @@ def gerar_recibo_pdf(
 
     tabela = Table(
         linhas,
-        colWidths=[4.0 * cm, 9.2 * cm, 4.2 * cm, 4.0 * cm, 4.4 * cm],
+        colWidths=[2.6 * cm, 7.3 * cm, 3.0 * cm, 2.8 * cm, 3.5 * cm],
         repeatRows=1,
     )
 
@@ -1574,7 +2061,12 @@ def gerar_recibo_pdf(
         ("ALIGN", (0, 0), (-1, 0), "CENTER"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8.4),
+        ("FONTSIZE", (0, 0), (-1, -1), 6.5),
+        ("LEADING", (0, 0), (-1, -1), 7.2),
+        ("TOPPADDING", (0, 0), (-1, -1), 1.4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1.4),
+        ("LEFTPADDING", (0, 0), (-1, -1), 2),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 2),
         ("ALIGN", (2, 1), (-1, -1), "RIGHT"),
         ("BACKGROUND", (0, 1), (-1, -1), branco),
     ])
@@ -1591,20 +2083,20 @@ def gerar_recibo_pdf(
 
     tabela.setStyle(tabela_style)
     elementos.append(tabela)
-    elementos.append(Spacer(1, 0.28 * cm))
+    elementos.append(Spacer(1, 0.14 * cm))
 
     assinatura = Table(
         [[""], ["Assinatura do Entregador"]],
-        colWidths=[13.2 * cm],
+        colWidths=[10.0 * cm],
         hAlign="LEFT",
     )
     assinatura.setStyle(TableStyle([
         ("LINEABOVE", (0, 1), (0, 1), 0.8, preto),
         ("ALIGN", (0, 1), (0, 1), "CENTER"),
-        ("FONTSIZE", (0, 1), (0, 1), 9),
+        ("FONTSIZE", (0, 1), (0, 1), 7.2),
         ("TEXTCOLOR", (0, 1), (0, 1), preto),
-        ("TOPPADDING", (0, 1), (0, 1), 8),
-        ("BOTTOMPADDING", (0, 0), (0, 0), 28),
+        ("TOPPADDING", (0, 1), (0, 1), 5),
+        ("BOTTOMPADDING", (0, 0), (0, 0), 18),
     ]))
 
     linhas_totais_finais = [
@@ -1612,7 +2104,9 @@ def gerar_recibo_pdf(
         ["Total Kg Excedente", moeda(total_valor_kg)],
         ["Subtotal", moeda(subtotal_base)],
         ["Acareação", moeda(acareacao)],
-        ["Bônus", moeda(bonus)],
+        ["Bônus Extra", moeda(bonus_extra)],
+        ["Bônus Sábados", moeda(bonus_sabados)],
+        ["Bônus Feriado", moeda(bonus_feriado)],
         ["Vale", f"- {moeda(vale)}" if vale > 0 else moeda(0)],
         ["Desconto", f"- {moeda(desconto)}" if desconto > 0 else moeda(0)],
         ["TOTAL DO RECIBO", moeda(total_geral)],
@@ -1620,7 +2114,7 @@ def gerar_recibo_pdf(
 
     totais_finais = Table(
         linhas_totais_finais,
-        colWidths=[4.0 * cm, 4.4 * cm],
+        colWidths=[4.0 * cm, 3.7 * cm],
         hAlign="RIGHT",
     )
     totais_finais.setStyle(TableStyle([
@@ -1630,7 +2124,9 @@ def gerar_recibo_pdf(
         ("TEXTCOLOR", (0, 0), (-1, -1), preto),
         ("FONTNAME", (0, 0), (-1, -2), "Helvetica"),
         ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8.6),
+        ("FONTSIZE", (0, 0), (-1, -1), 6.8),
+        ("TOPPADDING", (0, 0), (-1, -1), 1.6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1.6),
         ("ALIGN", (0, 0), (0, -1), "RIGHT"),
         ("ALIGN", (1, 0), (1, -1), "RIGHT"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -1638,7 +2134,7 @@ def gerar_recibo_pdf(
 
     bloco_assinatura_totais = Table(
         [[assinatura, totais_finais]],
-        colWidths=[16.2 * cm, 8.4 * cm],
+        colWidths=[10.8 * cm, 7.9 * cm],
         hAlign="CENTER",
     )
     bloco_assinatura_totais.setStyle(TableStyle([
@@ -1649,14 +2145,14 @@ def gerar_recibo_pdf(
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
     ]))
     elementos.append(KeepTogether(bloco_assinatura_totais))
-    elementos.append(Spacer(1, 0.35 * cm))
+    elementos.append(Spacer(1, 0.12 * cm))
 
     observacao = (
         "Declaro que conferi as informações acima referentes às entregas realizadas, "
         "incluindo valores por CEP e eventual adicional por kg excedente acima de 10kg."
     )
     elementos.append(Paragraph(observacao, style_normal))
-    elementos.append(Spacer(1, 0.25 * cm))
+    elementos.append(Spacer(1, 0.08 * cm))
 
     elementos.append(Paragraph(
         f"Recibo gerado automaticamente em {datetime.now().strftime('%d/%m/%Y %H:%M')}",
@@ -1676,6 +2172,8 @@ def processar_fechamento_cache(
     col_status: str,
     col_cep: str,
     col_rota_excel: Optional[str],
+    col_data_excel: Optional[str],
+    col_motorista_excel: Optional[str],
     status_entregue_tuple: Tuple[str, ...],
     status_ocorrencia_tuple: Tuple[str, ...],
     motoristas_extra_tuple: Tuple[Tuple[str, str, str], ...] = tuple(),
@@ -1688,12 +2186,22 @@ def processar_fechamento_cache(
     # Agora o Excel é usado somente como conferência:
     # Pedido + Status + CEP. Todo o restante vem dos PDFs.
     colunas_necessarias = tuple(dict.fromkeys([
-        c for c in [col_pedido, col_status, col_cep, col_rota_excel]
+        c for c in [col_pedido, col_status, col_cep, col_rota_excel, col_data_excel, col_motorista_excel]
         if c and str(c).strip()
     ]))
     df_excel_raw = carregar_excel_sistema_otimizado(excel_payloads, colunas_necessarias)
     if df_excel_raw.empty:
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+
+    df_bonus_excel = preparar_base_bonus_excel(
+        df_excel_raw,
+        col_pedido=col_pedido,
+        col_status=col_status,
+        col_data_excel=col_data_excel,
+        col_motorista_excel=col_motorista_excel,
+        status_entregue=list(status_entregue_tuple),
+        status_ocorrencia=list(status_ocorrencia_tuple),
+    )
 
     pdf_infos = []
     pdf_itens_frames = []
@@ -1707,7 +2215,7 @@ def processar_fechamento_cache(
     df_pdf_itens = pd.concat(pdf_itens_frames, ignore_index=True) if pdf_itens_frames else pd.DataFrame()
 
     if df_pdf_itens.empty:
-        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame()
+        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel
 
     df_status_cep = preparar_planilha_status_cep(
         df_excel_raw,
@@ -1724,7 +2232,7 @@ def processar_fechamento_cache(
 
     df_pagamento_base = montar_entregas_pagas_pdf(df_pedidos_pagos, df_pdf_itens)
     if df_pagamento_base.empty:
-        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame()
+        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel
 
     df_pagamento = calcular_pagamento(df_pagamento_base, df_cep_final, df_placas_final)
 
@@ -1734,7 +2242,7 @@ def processar_fechamento_cache(
 
     df_dia = gerar_fechamento_diario(df_pagamento)
 
-    return df_pdf_info, df_pdf_itens, df_pagamento, df_dia
+    return df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel
 
 
 # =========================================================
@@ -1787,6 +2295,76 @@ if arquivos_pdf_rotas:
         pdf_payloads.append((f.name, f.read()))
 
 pdf_motoristas_tuple = extrair_motoristas_placas_dos_pdfs_cache(tuple(pdf_payloads)) if pdf_payloads else tuple()
+
+st.sidebar.markdown("---")
+st.sidebar.header("👤 Motoristas / CNPJ")
+
+with st.sidebar.expander("➕ Cadastrar motorista e CNPJ", expanded=False):
+    novo_nome_motorista_cnpj = st.text_input(
+        "Nome do motorista",
+        key="novo_nome_motorista_cnpj",
+        placeholder="Ex: JOÃO DA SILVA",
+    )
+    novo_documento_motorista = st.text_input(
+        "CNPJ do motorista",
+        key="novo_documento_motorista",
+        placeholder="Ex: 00.000.000/0001-00",
+    )
+
+    if st.button("Salvar motorista/CNPJ", use_container_width=True):
+        ok, msg = salvar_motorista_cnpj_extra(novo_nome_motorista_cnpj, novo_documento_motorista)
+        if ok:
+            st.success(msg)
+            st.session_state.pop("resultado_fechamento", None)
+            st.cache_data.clear()
+            st.rerun()
+        else:
+            st.error(msg)
+
+    df_motoristas_cnpj_extra = carregar_motoristas_cnpj_extra_csv()
+    if not df_motoristas_cnpj_extra.empty:
+        st.caption("Motoristas/CNPJ cadastrados manualmente:")
+        st.dataframe(df_motoristas_cnpj_extra, use_container_width=True, hide_index=True, height=180)
+    else:
+        st.caption("Nenhum motorista/CNPJ extra cadastrado ainda.")
+
+with st.sidebar.expander("🗑️ Excluir motorista/CNPJ", expanded=False):
+    df_base_para_excluir = montar_base_cnpj_motoristas_final()
+    opcoes_excluir = df_base_para_excluir["Nome Motorista"].tolist() if not df_base_para_excluir.empty else []
+
+    motorista_excluir = st.selectbox(
+        "Motorista para excluir",
+        options=[""] + opcoes_excluir,
+        key="motorista_excluir_cnpj",
+    )
+    nome_excluir_digitado = st.text_input(
+        "Ou digite o nome do motorista",
+        key="nome_excluir_motorista_cnpj",
+        placeholder="Ex: JOÃO DA SILVA",
+    )
+    confirmar_exclusao = st.checkbox(
+        "Confirmo que desejo excluir/bloquear este motorista da base aplicada de CNPJ",
+        key="confirmar_exclusao_motorista_cnpj",
+    )
+
+    if st.button("Excluir motorista/CNPJ", use_container_width=True):
+        nome_para_excluir = nome_excluir_digitado.strip() or motorista_excluir
+        if not confirmar_exclusao:
+            st.error("Marque a confirmação para excluir o motorista.")
+        else:
+            ok, msg = excluir_motorista_cnpj(nome_para_excluir)
+            if ok:
+                st.success(msg)
+                st.session_state.pop("resultado_fechamento", None)
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                st.error(msg)
+
+if st.sidebar.button("📋 Ver motoristas/CNPJ cadastrados", use_container_width=True):
+    st.session_state["mostrar_base_cnpj_motoristas"] = not st.session_state.get("mostrar_base_cnpj_motoristas", False)
+
+st.sidebar.caption("Os motoristas/CNPJ cadastrados manualmente ficam salvos no arquivo motoristas_cnpj_extra.csv e sobrescrevem a base interna quando o nome for igual.")
 
 st.sidebar.markdown("---")
 st.sidebar.header("🚗 Placas / Tipo de Veículo")
@@ -1907,6 +2485,27 @@ if st.sidebar.button("💵 Ver todos os valores aplicados por CEP", use_containe
 # =========================================================
 # CONSULTAS RÁPIDAS DAS BASES INTERNAS / CADASTRADAS
 # =========================================================
+if st.session_state.get("mostrar_base_cnpj_motoristas", False):
+    st.markdown('<div class="section-heading">Base completa de motoristas e CNPJ aplicada</div>', unsafe_allow_html=True)
+
+    df_base_cnpj_view = montar_base_cnpj_motoristas_final().copy()
+    total_manual_cnpj = int((df_base_cnpj_view["Origem"] == "Cadastro manual").sum()) if "Origem" in df_base_cnpj_view.columns else 0
+    total_interna_cnpj = int((df_base_cnpj_view["Origem"] == "Base interna").sum()) if "Origem" in df_base_cnpj_view.columns else 0
+
+    st.info(
+        f"Total de motoristas na base aplicada: **{len(df_base_cnpj_view)}** | "
+        f"Base interna: **{total_interna_cnpj}** | "
+        f"Cadastro manual: **{total_manual_cnpj}**"
+    )
+    st.dataframe(df_base_cnpj_view, use_container_width=True, hide_index=True, height=420)
+    st.download_button(
+        "⬇️ Baixar base de motoristas/CNPJ em CSV",
+        data=df_base_cnpj_view.to_csv(index=False, sep=";", encoding="utf-8-sig"),
+        file_name="base_motoristas_cnpj_aplicada.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
+
 if st.session_state.get("mostrar_base_motoristas", False):
     st.markdown('<div class="section-heading">Base completa de placas e tipos de veículo aplicada</div>', unsafe_allow_html=True)
 
@@ -1990,6 +2589,8 @@ col_pedido_auto = detectar_coluna(df_sistema_raw, ["pedido", "numero pedido", "i
 col_status_auto = detectar_coluna(df_sistema_raw, ["status", "ocorrencia", "situacao"])
 col_cep_auto = detectar_coluna(df_sistema_raw, ["cep", "cep destino", "cep entrega"])
 col_rota_auto = detectar_coluna(df_sistema_raw, ["carga", "rota", "route", "manifesto", "romaneio"])
+col_data_excel_auto = detectar_coluna(df_sistema_raw, ["data", "data entrega", "data rota", "data baixa", "dt entrega", "dt baixa", "finalizado em"])
+col_motorista_excel_auto = detectar_coluna(df_sistema_raw, ["motorista", "entregador", "driver", "nome motorista", "nome entregador", "prestador"])
 
 cols = df_sistema_raw.columns.tolist()
 
@@ -1999,7 +2600,8 @@ def idx(col):
 # =========================================================
 # BLOQUEIO DAS CONFIGURAÇÕES DE COLUNAS
 # =========================================================
-SENHA_CONFIGURACAO = "gds123"
+SENHA_CONFIGURACAO = "2305"
+SENHA_BONUS = "0105"
 
 if "configuracoes_desbloqueadas" not in st.session_state:
     st.session_state["configuracoes_desbloqueadas"] = False
@@ -2030,8 +2632,22 @@ col_rota_excel = st.sidebar.selectbox(
     index=idx(col_rota_auto),
     disabled=config_bloqueada,
 )
+col_data_excel = st.sidebar.selectbox(
+    "Coluna da Data no Excel",
+    cols,
+    index=idx(col_data_excel_auto),
+    disabled=config_bloqueada,
+    help="Usada para calcular bônus de sábados e feriados pelo Excel.",
+)
+col_motorista_excel = st.sidebar.selectbox(
+    "Coluna do Motorista no Excel",
+    cols,
+    index=idx(col_motorista_excel_auto),
+    disabled=config_bloqueada,
+    help="Usada para calcular bônus de sábados e feriados pelo Excel.",
+)
 
-st.sidebar.caption("Modo rápido: o Excel será lido apenas nas colunas Pedido, Status, CEP e Rota/Carga. Data, placa, motorista e peso taxado serão puxados dos PDFs.")
+st.sidebar.caption("O pagamento principal usa PDF + Excel. Os bônus de sábados e feriados são calculados pelo Excel usando Data, Motorista, Pedido e Status.")
 
 with st.sidebar.expander("🔐 Alterar filtros de colunas", expanded=False):
     if st.session_state.get("configuracoes_desbloqueadas", False):
@@ -2071,13 +2687,15 @@ processar = st.sidebar.button("🚀 Processar fechamento", use_container_width=T
 # PROCESSAMENTO
 # =========================================================
 if processar:
-    df_pdf_info, df_pdf_itens, df_pagamento, df_dia = processar_fechamento_cache(
+    df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel = processar_fechamento_cache(
         excel_payloads=tuple(excel_payloads),
         pdf_payloads=tuple(pdf_payloads),
         col_pedido=col_pedido,
         col_status=col_status,
         col_cep=col_cep,
         col_rota_excel=col_rota_excel,
+        col_data_excel=col_data_excel,
+        col_motorista_excel=col_motorista_excel,
         status_entregue_tuple=tuple(status_entregue),
         status_ocorrencia_tuple=tuple(status_ocorrencia),
         motoristas_extra_tuple=motoristas_extra_tuple,
@@ -2089,6 +2707,7 @@ if processar:
         "df_pdf_itens": df_pdf_itens,
         "df_pagamento": df_pagamento,
         "df_dia": df_dia,
+        "df_bonus_excel": df_bonus_excel,
     }
 
 if "resultado_fechamento" not in st.session_state:
@@ -2100,6 +2719,7 @@ df_pdf_info = resultado["df_pdf_info"]
 df_pdf_itens = resultado["df_pdf_itens"]
 df_pagamento = resultado["df_pagamento"]
 df_dia = resultado["df_dia"]
+df_bonus_excel = resultado.get("df_bonus_excel", pd.DataFrame())
 
 # =========================================================
 # DASHBOARD
@@ -2191,7 +2811,18 @@ with col_rec3:
         max_value=_data_max,
     )
 
-st.markdown("**Ajustes manuais do recibo**")
+cnpj_motorista_recibo = obter_cnpj_motorista(motorista_recibo)
+st.markdown(
+    f"""
+    <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:12px 16px;margin:4px 0 16px 0;">
+        <span style="color:#64748b;font-weight:700;">CNPJ do motorista:</span>
+        <span style="color:#111827;font-weight:850;margin-left:8px;">{cnpj_motorista_recibo}</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown("**Ajustes manuais e bônus do recibo**")
 col_aj1, col_aj2, col_aj3, col_aj4 = st.columns(4)
 with col_aj1:
     acareacao_recibo = st.number_input(
@@ -2221,13 +2852,68 @@ with col_aj3:
         help="Desconto por perda, avaria ou outro desconto operacional.",
     )
 with col_aj4:
-    bonus_recibo = st.number_input(
-        "Bônus (+)",
+    bonus_extra_recibo = st.number_input(
+        "Bônus Extra (+)",
         min_value=0.0,
         value=0.0,
         step=1.0,
         format="%.2f",
-        help="Valor extra acordado por fora para adicionar ao recibo.",
+        help="Valor extra acordado manualmente com o motorista.",
+    )
+
+st.markdown("**Bônus automáticos pagos somente na 2ª quinzena**")
+
+if "bonus_desbloqueado" not in st.session_state:
+    st.session_state["bonus_desbloqueado"] = False
+
+with st.expander("🔐 Liberação dos bônus de sábado e feriado", expanded=not st.session_state.get("bonus_desbloqueado", False)):
+    if st.session_state.get("bonus_desbloqueado", False):
+        st.success("Bônus desbloqueados para este recibo.")
+        if st.button("🔒 Bloquear bônus novamente", use_container_width=True):
+            st.session_state["bonus_desbloqueado"] = False
+            st.rerun()
+    else:
+        senha_bonus_digitada = st.text_input("Senha para liberar bônus", type="password")
+        if st.button("🔓 Liberar bônus", use_container_width=True):
+            if senha_bonus_digitada == SENHA_BONUS:
+                st.session_state["bonus_desbloqueado"] = True
+                st.success("Bônus liberados.")
+                st.rerun()
+            else:
+                st.error("Senha incorreta. Os bônus não serão aplicados.")
+
+bonus_bloqueado = not st.session_state.get("bonus_desbloqueado", False)
+if bonus_bloqueado:
+    st.warning("Bônus de sábado e feriado estão bloqueados. Informe a senha para liberar a aplicação no recibo.")
+
+col_b1, col_b2, col_b3 = st.columns([1.1, 1.4, 1.5])
+with col_b1:
+    valor_bonus_por_entrega = st.number_input(
+        "Valor por entrega bônus",
+        min_value=0.0,
+        value=2.0,
+        step=0.5,
+        format="%.2f",
+        disabled=bonus_bloqueado,
+        help="Valor usado para bônus de sábado e feriado. Hoje: R$ 2,00 por entrega.",
+    )
+with col_b2:
+    liberar_bonus_sabado = st.radio(
+        "Liberar bônus sábados?",
+        ["Não", "Sim"],
+        index=0,
+        horizontal=True,
+        disabled=bonus_bloqueado,
+        help="Marque Sim somente quando desejar aplicar o bônus de sábado no recibo. A conferência e o cálculo são feitos automaticamente pelo Excel.",
+    )
+with col_b3:
+    datas_feriado_txt = st.text_area(
+        "Datas de feriado do mês",
+        value="",
+        height=78,
+        placeholder="Exemplo:\n01/05/2026\n09/07/2026",
+        disabled=bonus_bloqueado,
+        help="Digite um feriado por linha. A dashboard buscará no Excel as entregas do motorista nessas datas.",
     )
 
 # Para o recibo bater com o fechamento manual, usamos a base DETALHADA de entregas.
@@ -2247,19 +2933,116 @@ else:
     acareacao_recibo = max(0.0, to_float(acareacao_recibo))
     vale_recibo = max(0.0, to_float(vale_recibo))
     desconto_recibo = max(0.0, to_float(desconto_recibo))
-    bonus_recibo = max(0.0, to_float(bonus_recibo))
-    total_recibo = subtotal_recibo + acareacao_recibo + bonus_recibo - vale_recibo - desconto_recibo
+    bonus_extra_recibo = max(0.0, to_float(bonus_extra_recibo))
+    bonus_sabados_recibo = 0.0
+    bonus_feriado_recibo = 0.0
+    qtd_entregas_sabado = 0
+    qtd_entregas_feriado = 0
+    veio_todos_sabados = False
+
+    ano_ref = data_fim_recibo.year
+    mes_ref = data_fim_recibo.month
+    datas_feriado = parse_datas_feriados(datas_feriado_txt, ano_ref)
+
+    detalhes_sabado = detalhar_bonus_sabados_excel(
+        df_bonus_excel,
+        motorista_recibo,
+        ano_ref,
+        mes_ref,
+        valor_bonus_por_entrega,
+    )
+
+    todos_sabados_mes = detalhes_sabado.get("todos_sabados", [])
+    sabados_trabalhados = detalhes_sabado.get("sabados_trabalhados", [])
+    sabados_faltantes = detalhes_sabado.get("sabados_faltantes", [])
+    qtd_entregas_sabado = int(detalhes_sabado.get("qtd_entregas_sabado", 0) or 0)
+    veio_todos_sabados = bool(detalhes_sabado.get("veio_todos_sabados", False))
+    bonus_sabado_calculado = float(detalhes_sabado.get("bonus_calculado", 0.0) or 0.0)
+
+    sabados_txt = ", ".join([pd.to_datetime(d).strftime("%d/%m") for d in todos_sabados_mes]) if todos_sabados_mes else "não identificado"
+    sabados_trab_txt = ", ".join([pd.to_datetime(d).strftime("%d/%m") for d in sabados_trabalhados]) if sabados_trabalhados else "nenhum"
+    sabados_faltantes_txt = ", ".join([pd.to_datetime(d).strftime("%d/%m") for d in sabados_faltantes]) if sabados_faltantes else "nenhum"
+    feriados_txt = ", ".join([pd.to_datetime(d).strftime("%d/%m/%Y") for d in datas_feriado]) if datas_feriado else "nenhum informado"
+
+    st.markdown("**Conferência do bônus de sábado**")
+    conf1, conf2, conf3, conf4 = st.columns([1.4, 1.4, 1.1, 1.1])
+    with conf1:
+        st.caption("Sábados do mês")
+        st.write(sabados_txt)
+    with conf2:
+        st.caption("Sábados com entrega no Excel")
+        st.write(sabados_trab_txt)
+    with conf3:
+        st.caption("Entregas aos sábados")
+        st.markdown(f"### {qtd_entregas_sabado}")
+    with conf4:
+        st.caption("Bônus calculado")
+        st.markdown(f"### {moeda(bonus_sabado_calculado)}")
+
+    if (not bonus_bloqueado) and quinzena_recibo == "2ª Quinzena" and liberar_bonus_sabado == "Sim":
+        if veio_todos_sabados:
+            bonus_sabados_recibo = bonus_sabado_calculado
+            st.success(
+                f"Bônus sábados aplicado: motorista teve entrega em todos os sábados do mês. "
+                f"{qtd_entregas_sabado} entregas aos sábados × {moeda(valor_bonus_por_entrega)} = {moeda(bonus_sabados_recibo)}."
+            )
+        else:
+            bonus_sabados_recibo = 0.0
+            st.warning(
+                f"Bônus sábados não aplicado. Para liberar, o motorista precisa ter entrega em todos os sábados do mês. "
+                f"Sábados faltantes: {sabados_faltantes_txt}."
+            )
+    elif (not bonus_bloqueado) and quinzena_recibo != "2ª Quinzena" and liberar_bonus_sabado == "Sim":
+        st.info("Bônus de sábado foi conferido, mas só pode ser pago/aplicado na 2ª quinzena.")
+    elif bonus_bloqueado:
+        st.info("Bônus sábado não aplicado porque a liberação por senha está bloqueada.")
+    elif liberar_bonus_sabado == "Não":
+        st.info("Bônus sábado não aplicado manualmente. Altere para 'Sim' para aplicar, se a regra estiver liberada.")
+
+    if (not bonus_bloqueado) and quinzena_recibo == "2ª Quinzena":
+        bonus_feriado_recibo, qtd_entregas_feriado = calcular_bonus_feriados_excel(
+            df_bonus_excel,
+            motorista_recibo,
+            datas_feriado,
+            valor_bonus_por_entrega,
+        )
+
+        if datas_feriado:
+            st.info(
+                f"Bônus feriado: datas {feriados_txt} | {qtd_entregas_feriado} entregas × "
+                f"{moeda(valor_bonus_por_entrega)} = {moeda(bonus_feriado_recibo)}."
+            )
+    else:
+        if bonus_bloqueado:
+            st.info("Bônus feriado não aplicado porque a liberação por senha está bloqueada.")
+        elif datas_feriado_txt.strip():
+            st.info("Bônus de feriado foi identificado apenas para pagamento na 2ª quinzena.")
+        else:
+            st.info("Bônus de feriados não entra na 1ª quinzena.")
+
+    total_recibo = (
+        subtotal_recibo
+        + acareacao_recibo
+        + bonus_extra_recibo
+        + bonus_sabados_recibo
+        + bonus_feriado_recibo
+        - vale_recibo
+        - desconto_recibo
+    )
     qtd_recibo = int(len(df_recibo))
     kg_recibo = float(df_recibo["KG Excedente"].sum())
 
     st.info(
         f"Recibo selecionado: **{motorista_recibo}** | "
+        f"CNPJ: **{cnpj_motorista_recibo}** | "
         f"Quinzena: **{quinzena_recibo}** | "
         f"Entregas: **{qtd_recibo}** | "
         f"Kg excedente: **{kg_recibo:.2f}** | "
         f"Subtotal: **{moeda(subtotal_recibo)}** | "
         f"Acareação: **{moeda(acareacao_recibo)}** | "
-        f"Bônus: **{moeda(bonus_recibo)}** | "
+        f"Bônus Extra: **{moeda(bonus_extra_recibo)}** | "
+        f"Bônus Sábados: **{moeda(bonus_sabados_recibo)}** | "
+        f"Bônus Feriado: **{moeda(bonus_feriado_recibo)}** | "
         f"Vale: **- {moeda(vale_recibo)}** | "
         f"Desconto: **- {moeda(desconto_recibo)}** | "
         f"Total: **{moeda(total_recibo)}**"
@@ -2274,7 +3057,10 @@ else:
         acareacao_recibo,
         vale_recibo,
         desconto_recibo,
-        bonus_recibo,
+        bonus_extra_recibo,
+        bonus_sabados_recibo,
+        bonus_feriado_recibo,
+        cnpj_motorista=cnpj_motorista_recibo,
     )
 
     nome_motorista_arquivo = normalizar_nome_coluna(motorista_recibo) or "motorista"
@@ -2318,6 +3104,11 @@ cols_show = [c for c in cols_show if c in df_pagamento_display.columns]
 
 st.dataframe(df_pagamento_display[cols_show], use_container_width=True, height=520)
 
+if not df_bonus_excel.empty:
+    with st.expander("Base usada para cálculo dos bônus pelo Excel", expanded=False):
+        df_bonus_view = df_bonus_excel.copy()
+        st.dataframe(df_bonus_view, use_container_width=True, height=300)
+
 st.caption(
     "Regra ativa: quantidade de entregas baseada nas linhas válidas do PDF com status fechado no Excel. "
     "AWB repetida no manifesto não é removida, para bater com o controle manual."
@@ -2340,4 +3131,6 @@ st.caption(
     "Regra aplicada: pagamento por entrega realizada sem ocorrência, validando Pedido x Status no Excel e dados da entrega no PDF. "
     "KG_Excedente_Calculado: somente o que passou de 10kg em cada entrega, calculado a R$ 0,30 por kg excedente."
 )
+
+
 
