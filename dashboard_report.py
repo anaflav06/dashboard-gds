@@ -21,7 +21,7 @@ except Exception:
 # CONFIGURAÇÃO DA PÁGINA
 # =========================================================
 st.set_page_config(
-    page_title="Fechamento de Entregadores",
+    page_title="Fechamento de Entregadores (Período de Teste)",
     page_icon="🚚",
     layout="wide"
 )
