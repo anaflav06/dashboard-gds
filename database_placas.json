@@ -1,1 +1,385 @@
-[]
+{
+  "placas_extra": [
+    {
+      "Motorista Cadastro": "",
+      "Placa": "ALJ5C05",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "AMJ3855",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "AMM6H37",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "ARV6I20",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "CDCT9653",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "CUD3I68",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "CVL6A45",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DDP0E27",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DGX0I14",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DHG4A32",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DHH0F62",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DKN7257",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DLB2E18",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DLU1B52",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DSA9C73",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DVW8A62",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "DWR2F06",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EFA3D04",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EFW2B90",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EGG3175",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EGM7C52",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EGW5094",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EIH1H86",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EII7B32",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "ELT1G75",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "ENI4A01",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "ENS5H51",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EPR5J36",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "ERG7D64",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "ESL5839",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EXJ0C56",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "EXS1876",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FAB4E20",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FAE4A52",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FDS5B90",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FGM2D39",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FHV8C23",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FHX3979",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FKP8073",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FLB9431",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FLD5E76",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FMG7G51",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FMI8D36",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FNR5458",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FNY9H94",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FNZ1I96",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FPM9G49",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FQG7C97",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FQR0H32",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FRS5166",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FTC7D56",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FUZ2824",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FXS1D80",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "FYC5E79",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "GCN4G58",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "GEC7165",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "GES9C23",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "GFP6A65",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "GGY3F88",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "HNE2I80",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "KGW5B90",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "KVN5B24",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "KXF7G43",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "LPH4G38",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "PVA9A96",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "PYN1075",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "PZP6G95",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "QXK7B28",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "RAM2F24",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "RFN6B24",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "RMF0J84",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "RUX5H42",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "RVY1A68",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "SWW4F67",
+      "Tipo Veículo": "CARRO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "TJA9C70",
+      "Tipo Veículo": "MOTO"
+    },
+    {
+      "Motorista Cadastro": "",
+      "Placa": "TLJ3J86",
+      "Tipo Veículo": "MOTO"
+    }
+  ],
+  "placas_excluidas": []
+}
