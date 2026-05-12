@@ -4050,6 +4050,19 @@ else:
     qtd_entregas_sabado = int(detalhes_sabado.get("qtd_entregas_sabado", 0) or 0)
     veio_todos_sabados = bool(detalhes_sabado.get("veio_todos_sabados", False))
     bonus_sabado_calculado = float(detalhes_sabado.get("bonus_calculado", 0.0) or 0.0)
+    bonus_sabado_forcado = qtd_entregas_sabado * max(0.0, to_float(valor_bonus_por_entrega))
+
+    aplicar_bonus_sabado_sem_requisitos = st.radio(
+        "Aplicar bônus de sábado mesmo sem todos os requisitos?",
+        options=["Não", "Sim"],
+        index=0,
+        horizontal=True,
+        help="Use Sim apenas quando quiser liberar manualmente o bônus de sábado mesmo faltando algum sábado do mês.",
+    )
+
+    bonus_sabado_exibicao = bonus_sabado_calculado
+    if aplicar_bonus_sabado_sem_requisitos == "Sim" and quinzena_recibo == "2ª Quinzena":
+        bonus_sabado_exibicao = bonus_sabado_forcado
 
     sabados_txt = ", ".join([pd.to_datetime(d).strftime("%d/%m") for d in todos_sabados_mes]) if todos_sabados_mes else "não identificado"
     sabados_trab_txt = ", ".join([pd.to_datetime(d).strftime("%d/%m") for d in sabados_trabalhados]) if sabados_trabalhados else "nenhum"
@@ -4069,13 +4082,19 @@ else:
         st.markdown(f"### {qtd_entregas_sabado}")
     with conf4:
         st.caption("Bônus calculado")
-        st.markdown(f"### {moeda(bonus_sabado_calculado)}")
+        st.markdown(f"### {moeda(bonus_sabado_exibicao)}")
 
     if quinzena_recibo == "2ª Quinzena":
         if veio_todos_sabados:
             bonus_sabados_recibo = bonus_sabado_calculado
             st.success(
                 f"Bônus sábados aplicado: motorista teve entrega em todos os sábados do mês. "
+                f"{qtd_entregas_sabado} entregas aos sábados × {moeda(valor_bonus_por_entrega)} = {moeda(bonus_sabados_recibo)}."
+            )
+        elif aplicar_bonus_sabado_sem_requisitos == "Sim":
+            bonus_sabados_recibo = bonus_sabado_forcado
+            st.success(
+                f"Bônus sábados aplicado manualmente, mesmo sem todos os requisitos. "
                 f"{qtd_entregas_sabado} entregas aos sábados × {moeda(valor_bonus_por_entrega)} = {moeda(bonus_sabados_recibo)}."
             )
         else:
