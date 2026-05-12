@@ -4125,13 +4125,10 @@ else:
                         bonus_sabados_recibo - (qtd_entregas_sabado_rd_fechada * max(0.0, to_float(valor_bonus_por_entrega)))
                     )
 
-            if bonus_feriado_recibo > 0 and datas_feriado:
-                qtd_entregas_feriado_rd_fechada = int(df_rd_bonus_bloqueado["Data Rota DT"].isin(set(datas_feriado)).sum())
-                if qtd_entregas_feriado_rd_fechada > 0:
-                    bonus_feriado_recibo = max(
-                        0.0,
-                        bonus_feriado_recibo - (qtd_entregas_feriado_rd_fechada * max(0.0, to_float(valor_bonus_por_entrega)))
-                    )
+            # Ajuste: o bônus de feriado informado/calculado deve continuar entrando no recibo,
+            # no relatório e no Excel consolidado.
+            # A RD Fechada altera somente o valor das RDs selecionadas para R$ 250,00;
+            # as demais regras do recibo continuam sendo aplicadas normalmente no fechamento.
 
         st.info("RD Fechada aplicada somente nas RDs selecionadas. Essas RDs entram apenas com o valor fixo de R$ 250,00 e não recebem kg excedente, bônus de sábado ou bônus de feriado. As demais RDs seguem a regra normal de pagamento.")
 
