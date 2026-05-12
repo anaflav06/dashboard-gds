@@ -1747,8 +1747,8 @@ def filtrar_entregas_validas(df: pd.DataFrame, status_entregue: List[str], statu
     ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
 
     df = df.copy()
-    df["É Entregue"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
-    df["É Ocorrência"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
+    df["Entregue"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
+    df["Ocorrência"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
 
     # Validação por ROTA x DIA x PEDIDO.
     grupo = (
@@ -1977,7 +1977,7 @@ def preparar_base_bonus_excel(
         lambda x: any(s in x for s in ocorrencia_norm)
     ) if ocorrencia_norm else False
     out["Entregue"] = ~out["Ocorrência"]
-    out["Entrega Paga"] = out["Entregue"] & (~out["É Ocorrência"])
+    out["Entrega Paga"] = out["Entregue"] & (~out["Ocorrência"])
 
     # Mantém todos os pedidos válidos destinados ao motorista.
     # Remove apenas registros sem pedido, sem data ou sem motorista.
@@ -2218,7 +2218,7 @@ def preparar_base_metricas_motorista_excel(
     # Regra correta: ocorrência somente quando o texto do Motivo 1
     # bater com a lista de ocorrências/não pagar configurada no sidebar.
     ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
-    out["É Ocorrência"] = out["Status Normalizado"].apply(
+    out["Ocorrência"] = out["Status Normalizado"].apply(
         lambda x: any(s in x for s in ocorrencia_norm)
     ) if ocorrencia_norm else False
     out["Entregue"] = ~out["Ocorrência"]
