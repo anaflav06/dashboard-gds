@@ -3448,8 +3448,6 @@ def idx(col):
 # BLOQUEIO DAS CONFIGURAÇÕES DE COLUNAS
 # =========================================================
 SENHA_CONFIGURACAO = "2305"
-SENHA_BONUS = "0105"
-
 if "configuracoes_desbloqueadas" not in st.session_state:
     st.session_state["configuracoes_desbloqueadas"] = False
 
@@ -3745,30 +3743,7 @@ with col_aj4:
 
 st.markdown("**Bônus automáticos pagos somente na 2ª quinzena**")
 
-if "bonus_desbloqueado" not in st.session_state:
-    st.session_state["bonus_desbloqueado"] = False
-
-with st.expander("🔐 Liberação dos bônus de sábado e feriado", expanded=not st.session_state.get("bonus_desbloqueado", False)):
-    if st.session_state.get("bonus_desbloqueado", False):
-        st.success("Bônus desbloqueados para este recibo.")
-        if st.button("🔒 Bloquear bônus novamente", use_container_width=True):
-            st.session_state["bonus_desbloqueado"] = False
-            st.rerun()
-    else:
-        senha_bonus_digitada = st.text_input("Senha para liberar bônus", type="password")
-        if st.button("🔓 Liberar bônus", use_container_width=True):
-            if senha_bonus_digitada == SENHA_BONUS:
-                st.session_state["bonus_desbloqueado"] = True
-                st.success("Bônus liberados.")
-                st.rerun()
-            else:
-                st.error("Senha incorreta. Os bônus não serão aplicados.")
-
-bonus_bloqueado = not st.session_state.get("bonus_desbloqueado", False)
-if bonus_bloqueado:
-    st.warning("Bônus de sábado e feriado estão bloqueados. Informe a senha para liberar a aplicação no recibo.")
-
-col_b1, col_b2, col_b3 = st.columns([1.1, 1.4, 1.5])
+col_b1, col_b3 = st.columns([1.1, 1.9])
 with col_b1:
     valor_bonus_por_entrega = st.number_input(
         "Valor por entrega bônus",
@@ -3776,17 +3751,7 @@ with col_b1:
         value=2.0,
         step=0.5,
         format="%.2f",
-        disabled=bonus_bloqueado,
         help="Valor usado para bônus de sábado e feriado. Hoje: R$ 2,00 por entrega.",
-    )
-with col_b2:
-    liberar_bonus_sabado = st.radio(
-        "Liberar bônus sábados?",
-        ["Não", "Sim"],
-        index=0,
-        horizontal=True,
-        disabled=bonus_bloqueado,
-        help="Marque Sim somente quando desejar aplicar o bônus de sábado no recibo. A conferência e o cálculo são feitos automaticamente pelo Excel.",
     )
 with col_b3:
     datas_feriado_txt = st.text_area(
@@ -3794,7 +3759,6 @@ with col_b3:
         value="",
         height=78,
         placeholder="Exemplo:\n01/05/2026\n09/07/2026",
-        disabled=bonus_bloqueado,
         help="Digite um feriado por linha. A dashboard buscará no Excel as entregas do motorista nessas datas.",
     )
 
@@ -3862,7 +3826,7 @@ else:
         st.caption("Bônus calculado")
         st.markdown(f"### {moeda(bonus_sabado_calculado)}")
 
-    if (not bonus_bloqueado) and quinzena_recibo == "2ª Quinzena" and liberar_bonus_sabado == "Sim":
+    if quinzena_recibo == "2ª Quinzena":
         if veio_todos_sabados:
             bonus_sabados_recibo = bonus_sabado_calculado
             st.success(
@@ -3875,14 +3839,10 @@ else:
                 f"Bônus sábados não aplicado. Para liberar, o motorista precisa ter entrega em todos os sábados do mês. "
                 f"Sábados faltantes: {sabados_faltantes_txt}."
             )
-    elif (not bonus_bloqueado) and quinzena_recibo != "2ª Quinzena" and liberar_bonus_sabado == "Sim":
+    elif quinzena_recibo != "2ª Quinzena":
         st.info("Bônus de sábado foi conferido, mas só pode ser pago/aplicado na 2ª quinzena.")
-    elif bonus_bloqueado:
-        st.info("Bônus sábado não aplicado porque a liberação por senha está bloqueada.")
-    elif liberar_bonus_sabado == "Não":
-        st.info("Bônus sábado não aplicado manualmente. Altere para 'Sim' para aplicar, se a regra estiver liberada.")
 
-    if (not bonus_bloqueado) and quinzena_recibo == "2ª Quinzena":
+    if quinzena_recibo == "2ª Quinzena":
         bonus_feriado_recibo, qtd_entregas_feriado = calcular_bonus_feriados_excel(
             df_bonus_excel,
             motorista_recibo,
@@ -3896,9 +3856,7 @@ else:
                 f"{moeda(valor_bonus_por_entrega)} = {moeda(bonus_feriado_recibo)}."
             )
     else:
-        if bonus_bloqueado:
-            st.info("Bônus feriado não aplicado porque a liberação por senha está bloqueada.")
-        elif datas_feriado_txt.strip():
+        if datas_feriado_txt.strip():
             st.info("Bônus de feriado foi identificado apenas para pagamento na 2ª quinzena.")
         else:
             st.info("Bônus de feriados não entra na 1ª quinzena.")
