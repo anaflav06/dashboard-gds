@@ -1891,6 +1891,95 @@ def gerar_fechamento_diario(df_pagamento: pd.DataFrame) -> pd.DataFrame:
     return resumo
 
 
+
+def aplicar_rd_fechada_recibo(df_base: pd.DataFrame, rds_fechadas: List[str], valor_rd_fechada: float = 250.0) -> pd.DataFrame:
+    """Substitui as rotas selecionadas por uma linha única de RD Fechada.
+
+    Regra: quando uma RD é fechada, ela passa a valer somente o valor fixo informado.
+    Não considera kg excedente nem valores por entrega daquela RD.
+    """
+    if df_base is None or df_base.empty or not rds_fechadas:
+        return df_base.copy() if df_base is not None else pd.DataFrame()
+
+    df = df_base.copy()
+    if "Rota" not in df.columns:
+        return df
+
+    rds_set = {str(rd).strip().upper() for rd in rds_fechadas if str(rd).strip()}
+    if not rds_set:
+        return df
+
+    df["Rota"] = df["Rota"].astype(str).str.strip().str.upper()
+    df_normais = df[~df["Rota"].isin(rds_set)].copy()
+    linhas_rd = []
+
+    for rd in sorted(rds_set):
+        df_rd = df[df["Rota"] == rd].copy()
+        if df_rd.empty:
+            continue
+
+        base_row = df_rd.iloc[0].copy()
+        base_row["Pedido"] = f"RD FECHADA - {rd}"
+        base_row["Status_Encontrados"] = "RD Fechada"
+        base_row["CEP"] = ""
+        base_row["CEP Prefixo"] = ""
+        base_row["Valor CEP"] = float(valor_rd_fechada)
+        base_row["KG Excedente"] = 0
+        base_row["Valor Excedente KG"] = 0.0
+        base_row["Total Entrega"] = float(valor_rd_fechada)
+        base_row["Peso Taxado Cálculo"] = 0.0
+        base_row["Peso_Taxado_KG"] = 0.0
+        base_row["P Taxado PDF"] = 0.0
+        base_row["Peso Real PDF"] = 0.0
+        base_row["Descrição Relatório"] = "RD Fechada"
+        base_row["Quantidade RD Fechada"] = int(len(df_rd))
+        base_row["Valor RD Fechada"] = float(valor_rd_fechada)
+        linhas_rd.append(base_row)
+
+    if linhas_rd:
+        df_rd_final = pd.DataFrame(linhas_rd)
+        df = pd.concat([df_normais, df_rd_final], ignore_index=True)
+    else:
+        df = df_normais
+
+    if "Data Rota" in df.columns:
+        df = df.sort_values(["Data Rota", "Rota", "Pedido"], kind="mergesort")
+    return df.reset_index(drop=True)
+
+
+def substituir_fechamento_diario_por_recibo(
+    df_dia_base: pd.DataFrame,
+    df_recibo_modificado: pd.DataFrame,
+    motorista: str,
+    data_inicio,
+    data_fim,
+) -> pd.DataFrame:
+    """Atualiza no fechamento diário o período do motorista usando a base já ajustada com RD Fechada."""
+    if df_dia_base is None or df_dia_base.empty or df_recibo_modificado is None or df_recibo_modificado.empty:
+        return df_dia_base.copy() if df_dia_base is not None else pd.DataFrame()
+
+    df_out = df_dia_base.copy()
+    motorista_norm = str(motorista).upper().strip()
+    inicio = pd.to_datetime(data_inicio, errors="coerce").date()
+    fim = pd.to_datetime(data_fim, errors="coerce").date()
+
+    datas_out = pd.to_datetime(df_out["Data Rota"], errors="coerce").dt.date
+    mask_periodo = (
+        (df_out["Motorista Final"].astype(str).str.upper().str.strip() == motorista_norm)
+        & (datas_out >= inicio)
+        & (datas_out <= fim)
+    )
+    df_out = df_out[~mask_periodo].copy()
+
+    df_mod = df_recibo_modificado.copy()
+    df_mod["Data Rota"] = pd.to_datetime(df_mod["Data Rota"], errors="coerce").dt.date
+    resumo_mod = gerar_fechamento_diario(df_mod)
+
+    if not resumo_mod.empty:
+        df_out = pd.concat([df_out, resumo_mod], ignore_index=True)
+        df_out = df_out.sort_values(["Motorista Final", "Data Rota"], kind="mergesort").reset_index(drop=True)
+    return df_out
+
 def preparar_base_bonus_excel(
     df_excel_raw: pd.DataFrame,
     col_pedido: str,
@@ -2548,9 +2637,12 @@ def gerar_relatorio_entregas_pdf(
         df_resumo["Total Entrega"] = df_resumo["Total Entrega"].fillna(0).astype(float)
         df_resumo["Valor Excedente KG"] = df_resumo["Valor Excedente KG"].fillna(0).astype(float)
         df_resumo["KG Excedente"] = df_resumo["KG Excedente"].fillna(0).astype(float)
+        if "Descrição Relatório" not in df_resumo.columns:
+            df_resumo["Descrição Relatório"] = "Entregas realizadas"
+        df_resumo["Descrição Relatório"] = df_resumo["Descrição Relatório"].fillna("Entregas realizadas").astype(str)
 
         resumo_data_cep = (
-            df_resumo.groupby(["Data Agrupamento", "CEP Prefixo", "Valor CEP"], dropna=False)
+            df_resumo.groupby(["Data Agrupamento", "Descrição Relatório", "CEP Prefixo", "Valor CEP"], dropna=False)
             .agg(
                 Quantidade=("Pedido", "size"),
                 Total=("Valor CEP", "sum"),
@@ -2559,12 +2651,13 @@ def gerar_relatorio_entregas_pdf(
                 Total_Geral=("Total Entrega", "sum"),
             )
             .reset_index()
-            .sort_values(["Data Agrupamento", "CEP Prefixo", "Valor CEP"], kind="mergesort")
+            .sort_values(["Data Agrupamento", "Descrição Relatório", "CEP Prefixo", "Valor CEP"], kind="mergesort")
         )
 
         for _, row in resumo_data_cep.iterrows():
             qtd = int(row.get("Quantidade", 0) or 0)
-            cep_prefixo = normalizar_prefixo_cep(row.get("CEP Prefixo", ""))
+            descricao_linha = str(row.get("Descrição Relatório", "Entregas realizadas") or "Entregas realizadas")
+            cep_prefixo = normalizar_prefixo_cep(row.get("CEP Prefixo", "")) if descricao_linha != "RD Fechada" else ""
             valor_cep = float(row.get("Valor CEP", 0) or 0)
             total_entregas_cep = float(row.get("Total", 0) or 0)
             kg_excedente = float(row.get("KG_Excedente", 0) or 0)
@@ -2573,7 +2666,7 @@ def gerar_relatorio_entregas_pdf(
 
             linhas.append([
                 fmt_data(row.get("Data Agrupamento")),
-                "Entregas realizadas",
+                descricao_linha,
                 cep_prefixo,
                 moeda(valor_cep),
                 str(qtd),
@@ -2911,25 +3004,29 @@ def gerar_recibo_pdf(
 
         df_resumo["CEP Prefixo"] = df_resumo["CEP Prefixo"].astype(str).apply(normalizar_prefixo_cep)
         df_resumo["Valor CEP"] = df_resumo["Valor CEP"].fillna(0).astype(float)
+        if "Descrição Relatório" not in df_resumo.columns:
+            df_resumo["Descrição Relatório"] = "Entregas realizadas"
+        df_resumo["Descrição Relatório"] = df_resumo["Descrição Relatório"].fillna("Entregas realizadas").astype(str)
 
         resumo_cep = (
-            df_resumo.groupby(["CEP Prefixo", "Valor CEP"], dropna=False)
+            df_resumo.groupby(["Descrição Relatório", "CEP Prefixo", "Valor CEP"], dropna=False)
             .agg(
                 Quantidade=("Pedido", "size"),
                 Total_Entregas=("Valor CEP", "sum"),
             )
             .reset_index()
-            .sort_values(["CEP Prefixo", "Valor CEP"])
+            .sort_values(["Descrição Relatório", "CEP Prefixo", "Valor CEP"])
         )
 
         for _, item in resumo_cep.iterrows():
+            descricao_linha = str(item.get("Descrição Relatório", "Entregas realizadas") or "Entregas realizadas")
             cep_prefixo = str(item.get("CEP Prefixo", "") or "").strip()
-            cep_prefixo = normalizar_prefixo_cep(cep_prefixo) if cep_prefixo else ""
+            cep_prefixo = normalizar_prefixo_cep(cep_prefixo) if cep_prefixo and descricao_linha != "RD Fechada" else ""
             valor_cep = float(item.get("Valor CEP", 0) or 0)
             qtd = int(item.get("Quantidade", 0) or 0)
             total_linha = float(item.get("Total_Entregas", 0) or 0)
             linhas.append([
-                "Entregas realizadas",
+                descricao_linha,
                 cep_prefixo,
                 moeda(valor_cep),
                 str(qtd),
@@ -3789,6 +3886,48 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Opção de RD Fechada: substitui o cálculo normal da rota pelo valor fixo de R$ 250,00.
+df_rd_opcoes = df_pagamento.copy()
+df_rd_opcoes["Data Rota DT"] = pd.to_datetime(df_rd_opcoes["Data Rota"], errors="coerce").dt.date
+df_rd_opcoes = df_rd_opcoes[
+    (df_rd_opcoes["Motorista Final"].astype(str) == str(motorista_recibo))
+    & (df_rd_opcoes["Data Rota DT"] >= data_inicio_recibo)
+    & (df_rd_opcoes["Data Rota DT"] <= data_fim_recibo)
+].copy()
+
+rds_disponiveis_fechada = sorted([
+    str(rd).strip().upper()
+    for rd in df_rd_opcoes.get("Rota", pd.Series(dtype=str)).dropna().unique().tolist()
+    if str(rd).strip()
+])
+
+st.markdown("**RD Fechada**")
+col_rd1, col_rd2 = st.columns([1.0, 3.0])
+with col_rd1:
+    possui_rd_fechada = st.radio(
+        "Motorista possui RD fechada?",
+        ["Não", "Sim"],
+        horizontal=True,
+        index=0,
+        help="Quando marcado como Sim, a RD selecionada passa a valer R$ 250,00 e ignora kg excedente e bônus daquela rota.",
+    )
+
+with col_rd2:
+    rds_fechadas_recibo = []
+    if possui_rd_fechada == "Sim":
+        rds_fechadas_recibo = st.multiselect(
+            "Selecione as RDs fechadas",
+            options=rds_disponiveis_fechada,
+            default=[],
+            help="Cada RD selecionada será paga como RD Fechada no valor fixo de R$ 250,00.",
+        )
+        if rds_fechadas_recibo:
+            st.success(f"RD Fechada: {len(rds_fechadas_recibo)} RD(s) × R$ 250,00 = {moeda(len(rds_fechadas_recibo) * 250.0)}")
+        else:
+            st.info("Selecione uma ou mais RDs para aplicar o valor fechado de R$ 250,00.")
+    else:
+        rds_fechadas_recibo = []
+
 st.markdown("**Ajustes manuais e bônus do recibo**")
 col_aj1, col_aj2, col_aj3, col_aj4 = st.columns(4)
 with col_aj1:
@@ -3859,6 +3998,9 @@ df_recibo = df_recibo[
     & (df_recibo["Data Rota DT"] <= data_fim_recibo)
 ].copy()
 
+# Aplica RD Fechada no recibo/relatório: remove o cálculo normal da RD e substitui por R$ 250,00.
+df_recibo = aplicar_rd_fechada_recibo(df_recibo, rds_fechadas_recibo, valor_rd_fechada=250.0)
+
 # Dados usados para preencher os adicionais no Excel consolidado.
 df_relatorio_entregas_excel = pd.DataFrame()
 motorista_relatorio_excel = ""
@@ -3870,6 +4012,7 @@ desconto_relatorio_excel = 0.0
 bonus_extra_relatorio_excel = 0.0
 bonus_sabados_relatorio_excel = 0.0
 bonus_feriado_relatorio_excel = 0.0
+df_dia_excel = df_dia.copy()
 
 if df_recibo.empty:
     st.warning("Não há dados para gerar recibo com o motorista e período selecionados.")
@@ -3959,6 +4102,11 @@ else:
         else:
             st.info("Bônus de feriados não entra na 1ª quinzena.")
 
+    if rds_fechadas_recibo:
+        bonus_sabados_recibo = 0.0
+        bonus_feriado_recibo = 0.0
+        st.info("Como existe RD Fechada selecionada, bônus de sábado e bônus de feriado não serão aplicados neste recibo. A RD Fechada entra somente com o valor fixo de R$ 250,00.")
+
     total_recibo = (
         subtotal_recibo
         + acareacao_recibo
@@ -3988,6 +4136,13 @@ else:
     )
 
     df_relatorio_entregas_excel = df_recibo.drop(columns=["Data Rota DT"], errors="ignore").copy()
+    df_dia_excel = substituir_fechamento_diario_por_recibo(
+        df_dia,
+        df_relatorio_entregas_excel,
+        motorista_recibo,
+        data_inicio_recibo,
+        data_fim_recibo,
+    )
     motorista_relatorio_excel = motorista_recibo
     data_inicio_relatorio_excel = data_inicio_recibo
     data_fim_relatorio_excel = data_fim_recibo
@@ -4089,7 +4244,7 @@ st.markdown("---")
 st.markdown('<div class="section-heading">Exportação</div>', unsafe_allow_html=True)
 
 excel_bytes = criar_excel_fechamento(
-    df_dia,
+    df_dia_excel,
     df_pagamento,
     df_pdf_info,
     df_relatorio_entregas_excel,
