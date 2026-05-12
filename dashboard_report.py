@@ -1,7 +1,7 @@
 import io
 import math
 import base64
-import hashlib
+import json
 import re
 import unicodedata
 from datetime import datetime
@@ -12,6 +12,11 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+
+try:
+    import requests
+except Exception:
+    requests = None
 
 try:
     import fitz  # PyMuPDF
@@ -27,6 +32,156 @@ st.set_page_config(
     page_icon="🚚",
     layout="wide"
 )
+
+
+
+# =========================================================
+# PERSISTÊNCIA EM JSON NO GITHUB
+# =========================================================
+# Estes arquivos ficam na raiz do repositório:
+# - database_motoristas.json
+# - database_placas.json
+# - database_ceps.json
+#
+# Para salvar no GitHub, configure no Streamlit Cloud em Settings > Secrets:
+# GITHUB_TOKEN = "seu_token"
+# GITHUB_REPO = "anaflav06/dashboard-gds"
+# GITHUB_BRANCH = "main"
+GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "")
+GITHUB_REPO = st.secrets.get("GITHUB_REPO", "")
+GITHUB_BRANCH = st.secrets.get("GITHUB_BRANCH", "main")
+
+DATABASE_MOTORISTAS_JSON = "database_motoristas.json"
+DATABASE_PLACAS_JSON = "database_placas.json"
+DATABASE_CEPS_JSON = "database_ceps.json"
+
+
+def github_json_ativo() -> bool:
+    return bool(GITHUB_TOKEN and GITHUB_REPO and GITHUB_BRANCH and requests is not None)
+
+
+def _github_headers() -> Dict[str, str]:
+    return {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+
+def _github_url(arquivo: str) -> str:
+    return f"https://api.github.com/repos/{GITHUB_REPO}/contents/{arquivo}"
+
+
+@st.cache_data(show_spinner=False, ttl=30)
+def carregar_json_github(arquivo: str, padrao_json: str = "[]"):
+    """Carrega um JSON da raiz do GitHub. Se não conseguir, retorna o padrão."""
+    padrao = json.loads(padrao_json)
+    if not github_json_ativo():
+        return padrao
+
+    try:
+        resp = requests.get(
+            _github_url(arquivo),
+            headers=_github_headers(),
+            params={"ref": GITHUB_BRANCH},
+            timeout=15,
+        )
+        if resp.status_code == 404:
+            return padrao
+        if not resp.ok:
+            return padrao
+
+        conteudo_base64 = resp.json().get("content", "")
+        conteudo = base64.b64decode(conteudo_base64).decode("utf-8")
+        if not conteudo.strip():
+            return padrao
+        return json.loads(conteudo)
+    except Exception:
+        return padrao
+
+
+def salvar_json_github(arquivo: str, dados, mensagem_commit: str) -> bool:
+    """Salva um JSON no GitHub. Retorna False sem quebrar a dashboard se falhar."""
+    if not github_json_ativo():
+        return False
+
+    try:
+        url = _github_url(arquivo)
+        headers = _github_headers()
+
+        sha_atual = None
+        resp_get = requests.get(url, headers=headers, params={"ref": GITHUB_BRANCH}, timeout=15)
+        if resp_get.ok:
+            sha_atual = resp_get.json().get("sha")
+
+        conteudo = json.dumps(dados, ensure_ascii=False, indent=2)
+        payload = {
+            "message": mensagem_commit,
+            "content": base64.b64encode(conteudo.encode("utf-8")).decode("ascii"),
+            "branch": GITHUB_BRANCH,
+        }
+        if sha_atual:
+            payload["sha"] = sha_atual
+
+        resp_put = requests.put(url, headers=headers, json=payload, timeout=20)
+        if resp_put.ok:
+            carregar_json_github.clear()
+            return True
+        return False
+    except Exception:
+        return False
+
+
+def _normalizar_db_placas(dados) -> Dict[str, list]:
+    if isinstance(dados, list):
+        return {"placas_extra": dados, "placas_excluidas": []}
+    if not isinstance(dados, dict):
+        return {"placas_extra": [], "placas_excluidas": []}
+    return {
+        "placas_extra": dados.get("placas_extra", []) if isinstance(dados.get("placas_extra", []), list) else [],
+        "placas_excluidas": dados.get("placas_excluidas", []) if isinstance(dados.get("placas_excluidas", []), list) else [],
+    }
+
+
+def _normalizar_db_motoristas(dados) -> Dict[str, list]:
+    if isinstance(dados, list):
+        return {"cnpj_extra": dados, "cnpj_excluidos": []}
+    if not isinstance(dados, dict):
+        return {"cnpj_extra": [], "cnpj_excluidos": []}
+    return {
+        "cnpj_extra": dados.get("cnpj_extra", []) if isinstance(dados.get("cnpj_extra", []), list) else [],
+        "cnpj_excluidos": dados.get("cnpj_excluidos", []) if isinstance(dados.get("cnpj_excluidos", []), list) else [],
+    }
+
+
+def _normalizar_db_ceps(dados) -> list:
+    if isinstance(dados, dict):
+        dados = dados.get("reajustes_cep", [])
+    return dados if isinstance(dados, list) else []
+
+
+def carregar_db_placas() -> Dict[str, list]:
+    return _normalizar_db_placas(carregar_json_github(DATABASE_PLACAS_JSON, "{}"))
+
+
+def salvar_db_placas(dados: Dict[str, list]) -> bool:
+    return salvar_json_github(DATABASE_PLACAS_JSON, _normalizar_db_placas(dados), "Atualiza database_placas.json")
+
+
+def carregar_db_motoristas() -> Dict[str, list]:
+    return _normalizar_db_motoristas(carregar_json_github(DATABASE_MOTORISTAS_JSON, "{}"))
+
+
+def salvar_db_motoristas(dados: Dict[str, list]) -> bool:
+    return salvar_json_github(DATABASE_MOTORISTAS_JSON, _normalizar_db_motoristas(dados), "Atualiza database_motoristas.json")
+
+
+def carregar_db_ceps() -> list:
+    return _normalizar_db_ceps(carregar_json_github(DATABASE_CEPS_JSON, "[]"))
+
+
+def salvar_db_ceps(dados: list) -> bool:
+    return salvar_json_github(DATABASE_CEPS_JSON, _normalizar_db_ceps(dados), "Atualiza database_ceps.json")
 
 
 # =========================================================
@@ -227,6 +382,35 @@ BASE_PLACAS_VEICULOS = [
     ("TKV4H26", "MOTO"),
     ("GYT1T09", "CARRO"),
     ("FAS1E74", "CARRO"),
+    ("DDP0E27", "CARRO"),
+    ("EFA3D04", "CARRO"),
+    ("EGW5094", "CARRO"),
+    ("ELT1G75", "CARRO"),
+    ("ERG7D64", "CARRO"),
+    ("FGM2D39", "CARRO"),
+    ("FLB9431", "CARRO"),
+    ("FLD5E76", "CARRO"),
+    ("FMG7G51", "CARRO"),
+    ("FNR5458", "CARRO"),
+    ("GEC7165", "CARRO"),
+    ("GES9C23", "CARRO"),
+    ("GGY3F88", "CARRO"),
+    ("KGW5B90", "CARRO"),
+    ("LPH4G38", "CARRO"),
+    ("PZP6G95", "CARRO"),
+    ("RFN6B24", "CARRO"),
+    ("RMF0J84", "CARRO"),
+    ("RUX5H42", "CARRO"),
+    ("AMJ3855", "MOTO"),
+    ("CDCT9653", "MOTO"),
+    ("DVW8A62", "MOTO"),
+    ("EXJ0C56", "MOTO"),
+    ("FXS1D80", "MOTO"),
+    ("GCN4G58", "MOTO"),
+    ("ALJ5C05", "CARRO"),
+    ("AMM6H37", "CARRO"),
+    ("CUD3I68", "CARRO"),
+    
 ]
 
 
@@ -255,18 +439,18 @@ BASE_CNPJ_MOTORISTAS = {
     "FERNANDO LOURENÇO DE PAULA": "34.605.101/0001-08",
     "GERSON CANDIDO DA SILVA": "29.882.972/0001-39",
     "GERSON LANDIM": "SEM CNPJ",
-    "GUSTAVO NOVAES": "458.421.698-35",
-    "ISAQUE FERNANDO": "SEM CNPJ",
+    "GUSTAVO NOVAES SILVA": "64.317.201/0001-08",
+    "ISAQUE FERNANDO DA COSTA MARTINS SILVA": "62.346.255/0001-68",
     "GUILHERME SOARES SILVA": "42.690.386/0001-50",
     "JOEL ELIAS FILHO": "49.631.479/0001-53",
     "JEFFERSON NOVAIS DE OLIVEIRA": "30.226.280/0001-11",
     "JOSE LUIS SABATINI": "42.891.659/0001-25",
-    "JAMILTON ALVES MOREIRA RODRIGUES": "365.378.148-55",
+    "JAIMILTON ALVES MOREIRA RODRIGUES": "55.127.216/0001-04",
     "JUAN OLIVEIRA DE MENEZES": "44.839.742/0001-80",
     "KELVIN MESSIAS DOS SANTOS OLIVEIRA": "59.462.329/0001-17",
     "MARCELO SANTOS PRAÇA": "40.218.730/0001-88",
     "MARIA NATALIA DA SILVA FIGUEIREDO BARBOSA": "47.702.239/0001-77",
-    "MAURO ALGAVES": "323.805.438-44",
+    "MAURO ALGAVES": "34.247.737/0001-25",
     "MARCIO LEITE DE OLIVEIRA": "52.484.794/0001-00",
     "MATHEUS PINTO DE OLIVEIRA": "61.632.284/0001-23",
     "PAULO VICTOR SOUSA LOPES": "50.787.799/0001-86",
@@ -285,7 +469,30 @@ BASE_CNPJ_MOTORISTAS = {
     "WALLAS AMARANTE ALVES DOS SANTOS": "45.765.135/0001-86",
     "WELLINGTON DIAS DA SILVA": "24.805.136/0001-37",
     "WENDHELL ANDERSON DA SIVA CAVALCANTE": "65.538.430/0001-07",
-    "WILLIAM SOUZA SANTOS": "164.149.808-03",
+    "WILLIAM SOUZA SANTOS": "18.766.429/0001-50",
+    "JESSICA PEREIRA DOS SANTOS": "48.847.009/0001-69",
+    "JOSE CLAUDINEY DA SILVA": "18.036.024/0001-66",
+    "JOSE LUIZ CANDIDO": "18.036.024/0001-66",
+    "JOSE WILSON DA SILVA": "63.728.550/0001-41",
+    "JULIANA CARVALHO LEBRE": "55.478.354/0001-38",
+    "KAUA FERNANDES BRANDÃO SILVA": "54.476.632/0001-87",
+    "LUCAS FAGUNDES DE LIMA": "26.985.251/0001-66",
+    "LUIZ CARLOS MARQUES": "42.929.833/0001-81",
+    "MARCOS ANTONIO ARAUJO GOMES": "31.851.508/0001-27",
+    "MARCOS VINICIUS DOS SANTOS FERREIRA": "61.588.016/0001-51",
+    "MATHEUS LUIZ FERREIRA": "65.274.932/0001-78",
+    "MAURICIO RAMOS": "43.102.624/0001-22",
+    "PAULO EDSON FERNANDES": "60.580.076/0001-65",
+    "RAPHAEL BARBOSA TEIXEIRA": "37.385.753/0001-72",
+    "REGINALDO GONCALVES DOS SANTOS": "26.561.607/0001-34",
+    "SAMIRA MARIA RODRIGUES SOBRINHO SILVA": "52.959.490/0001-51",
+    "SEBASTIÃO ROCHA DA SILVA": "59.196.445/0001-31",
+    "SILVIO PEDRO ROBERTO": "59.989.591/0001-14",
+    "SIRLENE ALMEIDA DA COSTA": "21.123.958/0001-40",
+    "VANESSA OLIVEIRA SANTOS MARANGONI": "64.379.294/0001-97",
+    "VINICIUS ALVES FERREIRA DE ARAUJO": "64.983.884/0001-24",
+    "WESLEY SILVA DE PAULA": "33.908.396/0001-29",
+    "YAEL DE CASTRO FERREIRA GOMES": "33.908.396/0001-29",
 }
 
 # Arquivo local para motoristas/CNPJ cadastrados pela dashboard.
@@ -308,15 +515,36 @@ def normalizar_placa(valor) -> str:
     return re.sub(r"[^A-Z0-9]", "", str(valor or "").upper())
 
 
+def salvar_motoristas_extra_df(df_extra: pd.DataFrame) -> None:
+    df = df_extra.copy() if df_extra is not None else pd.DataFrame(columns=COLUNAS_MOTORISTAS_EXTRA)
+    for col in COLUNAS_MOTORISTAS_EXTRA:
+        if col not in df.columns:
+            df[col] = ""
+    df = df[COLUNAS_MOTORISTAS_EXTRA].copy()
+    df["Motorista Cadastro"] = ""
+    df["Placa"] = df["Placa"].apply(normalizar_placa)
+    df["Tipo Veículo"] = df["Tipo Veículo"].astype(str).str.strip().str.upper()
+    df = df[(df["Placa"] != "") & (df["Tipo Veículo"].isin(["MOTO", "CARRO"]))].copy()
+    df = df.drop_duplicates(subset=["Placa"], keep="last").sort_values("Placa")
+    df.to_csv(ARQUIVO_MOTORISTAS_EXTRA, index=False, encoding="utf-8-sig")
+
+    db = carregar_db_placas()
+    db["placas_extra"] = df.to_dict(orient="records")
+    salvar_db_placas(db)
+
+
 def carregar_placas_excluidas_csv() -> pd.DataFrame:
     """Carrega placas removidas manualmente da base aplicada."""
-    if not ARQUIVO_PLACAS_EXCLUIDAS.exists():
-        return pd.DataFrame(columns=COLUNAS_PLACAS_EXCLUIDAS)
-
-    try:
-        df = pd.read_csv(ARQUIVO_PLACAS_EXCLUIDAS, dtype=str).fillna("")
-    except Exception:
-        return pd.DataFrame(columns=COLUNAS_PLACAS_EXCLUIDAS)
+    db = carregar_db_placas()
+    if db.get("placas_excluidas"):
+        df = pd.DataFrame(db.get("placas_excluidas", []))
+    elif ARQUIVO_PLACAS_EXCLUIDAS.exists():
+        try:
+            df = pd.read_csv(ARQUIVO_PLACAS_EXCLUIDAS, dtype=str).fillna("")
+        except Exception:
+            df = pd.DataFrame(columns=COLUNAS_PLACAS_EXCLUIDAS)
+    else:
+        df = pd.DataFrame(columns=COLUNAS_PLACAS_EXCLUIDAS)
 
     if "Placa" not in df.columns:
         df["Placa"] = ""
@@ -348,6 +576,10 @@ def salvar_placas_excluidas(df_excluidas: pd.DataFrame) -> None:
     df = df[df["Placa"] != ""].drop_duplicates(subset=["Placa"], keep="last").sort_values("Placa")
     df.to_csv(ARQUIVO_PLACAS_EXCLUIDAS, index=False, encoding="utf-8-sig")
 
+    db = carregar_db_placas()
+    db["placas_excluidas"] = df.to_dict(orient="records")
+    salvar_db_placas(db)
+
 
 def excluir_placa_base(placa: str) -> Tuple[bool, str]:
     placa = normalizar_placa(placa)
@@ -361,7 +593,7 @@ def excluir_placa_base(placa: str) -> Tuple[bool, str]:
         qtd_antes = len(df_extra)
         df_extra = df_extra[df_extra["Placa"].apply(normalizar_placa) != placa].copy()
         removida_manual = len(df_extra) < qtd_antes
-        df_extra.to_csv(ARQUIVO_MOTORISTAS_EXTRA, index=False, encoding="utf-8-sig")
+        salvar_motoristas_extra_df(df_extra)
 
     # Também grava na lista de excluídas para remover placa que venha da base interna.
     df_excluidas = carregar_placas_excluidas_csv()
@@ -387,13 +619,16 @@ def remover_placa_da_lista_excluidas(placa: str) -> None:
 
 def carregar_motoristas_extra_csv() -> pd.DataFrame:
     """Carrega placas/tipos de veículo cadastrados manualmente na própria dashboard."""
-    if not ARQUIVO_MOTORISTAS_EXTRA.exists():
-        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_EXTRA)
-
-    try:
-        df = pd.read_csv(ARQUIVO_MOTORISTAS_EXTRA, dtype=str).fillna("")
-    except Exception:
-        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_EXTRA)
+    db = carregar_db_placas()
+    if db.get("placas_extra"):
+        df = pd.DataFrame(db.get("placas_extra", []))
+    elif ARQUIVO_MOTORISTAS_EXTRA.exists():
+        try:
+            df = pd.read_csv(ARQUIVO_MOTORISTAS_EXTRA, dtype=str).fillna("")
+        except Exception:
+            df = pd.DataFrame(columns=COLUNAS_MOTORISTAS_EXTRA)
+    else:
+        df = pd.DataFrame(columns=COLUNAS_MOTORISTAS_EXTRA)
 
     for col in COLUNAS_MOTORISTAS_EXTRA:
         if col not in df.columns:
@@ -428,7 +663,7 @@ def salvar_motorista_extra(placa: str, tipo_veiculo: str) -> Tuple[bool, str]:
     df = pd.concat([df, novo], ignore_index=True)
     df = df.drop_duplicates(subset=["Placa"], keep="last")
     df = df.sort_values(["Placa"]).reset_index(drop=True)
-    df.to_csv(ARQUIVO_MOTORISTAS_EXTRA, index=False, encoding="utf-8-sig")
+    salvar_motoristas_extra_df(df)
     remover_placa_da_lista_excluidas(placa)
     return True, f"Placa {placa} cadastrada/atualizada como {tipo_veiculo}."
 
@@ -505,15 +740,34 @@ def normalizar_prefixo_cep(valor) -> str:
     return digitos[:3].zfill(3)
 
 
+def salvar_reajustes_cep_df(df_reajustes: pd.DataFrame) -> None:
+    df = df_reajustes.copy() if df_reajustes is not None else pd.DataFrame(columns=COLUNAS_REAJUSTES_CEP)
+    for col in COLUNAS_REAJUSTES_CEP:
+        if col not in df.columns:
+            df[col] = ""
+    df = df[COLUNAS_REAJUSTES_CEP].copy()
+    df["CEP Prefixo"] = df["CEP Prefixo"].apply(normalizar_prefixo_cep)
+    df["Tipo Veículo"] = df["Tipo Veículo"].astype(str).str.strip().str.upper()
+    df["Valor CEP"] = df["Valor CEP"].apply(to_float)
+    df = df[(df["CEP Prefixo"] != "") & (df["Tipo Veículo"].isin(["MOTO", "CARRO"])) & (df["Valor CEP"] > 0)].copy()
+    df = df.drop_duplicates(subset=["CEP Prefixo", "Tipo Veículo"], keep="last")
+    df = df.sort_values(["CEP Prefixo", "Tipo Veículo"]).reset_index(drop=True)
+    df.to_csv(ARQUIVO_REAJUSTES_CEP, index=False, encoding="utf-8-sig")
+    salvar_db_ceps(df.to_dict(orient="records"))
+
+
 def carregar_reajustes_cep_csv() -> pd.DataFrame:
     """Carrega reajustes de valor por CEP cadastrados manualmente na dashboard."""
-    if not ARQUIVO_REAJUSTES_CEP.exists():
-        return pd.DataFrame(columns=COLUNAS_REAJUSTES_CEP)
-
-    try:
-        df = pd.read_csv(ARQUIVO_REAJUSTES_CEP, dtype=str).fillna("")
-    except Exception:
-        return pd.DataFrame(columns=COLUNAS_REAJUSTES_CEP)
+    dados_json = carregar_db_ceps()
+    if dados_json:
+        df = pd.DataFrame(dados_json)
+    elif ARQUIVO_REAJUSTES_CEP.exists():
+        try:
+            df = pd.read_csv(ARQUIVO_REAJUSTES_CEP, dtype=str).fillna("")
+        except Exception:
+            df = pd.DataFrame(columns=COLUNAS_REAJUSTES_CEP)
+    else:
+        df = pd.DataFrame(columns=COLUNAS_REAJUSTES_CEP)
 
     for col in COLUNAS_REAJUSTES_CEP:
         if col not in df.columns:
@@ -549,7 +803,7 @@ def salvar_reajuste_cep(prefixo_cep: str, tipo_veiculo: str, valor_cep) -> Tuple
     df = pd.concat([df, novo], ignore_index=True)
     df = df.drop_duplicates(subset=["CEP Prefixo", "Tipo Veículo"], keep="last")
     df = df.sort_values(["CEP Prefixo", "Tipo Veículo"]).reset_index(drop=True)
-    df.to_csv(ARQUIVO_REAJUSTES_CEP, index=False, encoding="utf-8-sig")
+    salvar_reajustes_cep_df(df)
     return True, f"Valor do CEP {prefixo_cep} / {tipo_veiculo} reajustado para {moeda(valor)}."
 
 
@@ -579,7 +833,7 @@ def salvar_novo_cep(prefixo_cep: str, valor_moto, valor_carro) -> Tuple[bool, st
     df = pd.concat([df, novos], ignore_index=True)
     df = df.drop_duplicates(subset=["CEP Prefixo", "Tipo Veículo"], keep="last")
     df = df.sort_values(["CEP Prefixo", "Tipo Veículo"]).reset_index(drop=True)
-    df.to_csv(ARQUIVO_REAJUSTES_CEP, index=False, encoding="utf-8-sig")
+    salvar_reajustes_cep_df(df)
     return True, f"CEP {prefixo_cep} cadastrado: MOTO {moeda(valor_moto_float)} | CARRO {moeda(valor_carro_float)}."
 
 
@@ -730,15 +984,41 @@ def formatar_cnpj(valor) -> str:
     return f"{digitos[:2]}.{digitos[2:5]}.{digitos[5:8]}/{digitos[8:12]}-{digitos[12:14]}"
 
 
+def salvar_motoristas_cnpj_extra_df(df_extra: pd.DataFrame) -> None:
+    df = df_extra.copy() if df_extra is not None else pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXTRA)
+    if "Nome Motorista" not in df.columns:
+        df["Nome Motorista"] = ""
+    if "CNPJ" not in df.columns:
+        if "CNPJ/CPF" in df.columns:
+            df["CNPJ"] = df["CNPJ/CPF"]
+        else:
+            df["CNPJ"] = ""
+    df = df[["Nome Motorista", "CNPJ"]].copy()
+    df["Nome Motorista"] = df["Nome Motorista"].astype(str).apply(limpar_texto).str.upper()
+    df["CNPJ"] = df["CNPJ"].astype(str).apply(formatar_cnpj)
+    df = df[(df["Nome Motorista"] != "") & (df["CNPJ"] != "") & (df["CNPJ"] != "SEM CNPJ")].copy()
+    df["_nome_norm"] = df["Nome Motorista"].apply(normalizar_texto)
+    df = df.drop_duplicates(subset=["_nome_norm"], keep="last")
+    df = df.drop(columns=["_nome_norm"]).sort_values("Nome Motorista").reset_index(drop=True)
+    df.to_csv(ARQUIVO_MOTORISTAS_CNPJ_EXTRA, index=False, encoding="utf-8-sig")
+
+    db = carregar_db_motoristas()
+    db["cnpj_extra"] = df.to_dict(orient="records")
+    salvar_db_motoristas(db)
+
+
 def carregar_motoristas_cnpj_excluidos_csv() -> pd.DataFrame:
     """Carrega motoristas removidos manualmente da base aplicada de CNPJ."""
-    if not ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS.exists():
-        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXCLUIDOS)
-
-    try:
-        df = pd.read_csv(ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS, dtype=str).fillna("")
-    except Exception:
-        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXCLUIDOS)
+    db = carregar_db_motoristas()
+    if db.get("cnpj_excluidos"):
+        df = pd.DataFrame(db.get("cnpj_excluidos", []))
+    elif ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS.exists():
+        try:
+            df = pd.read_csv(ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS, dtype=str).fillna("")
+        except Exception:
+            df = pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXCLUIDOS)
+    else:
+        df = pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXCLUIDOS)
 
     if "Nome Motorista" not in df.columns:
         df["Nome Motorista"] = ""
@@ -763,16 +1043,23 @@ def salvar_motoristas_cnpj_excluidos(df_excluidos: pd.DataFrame) -> None:
     df = df.drop(columns=["_nome_norm"]).sort_values("Nome Motorista").reset_index(drop=True)
     df.to_csv(ARQUIVO_MOTORISTAS_CNPJ_EXCLUIDOS, index=False, encoding="utf-8-sig")
 
+    db = carregar_db_motoristas()
+    db["cnpj_excluidos"] = df.to_dict(orient="records")
+    salvar_db_motoristas(db)
+
 
 def carregar_motoristas_cnpj_extra_csv() -> pd.DataFrame:
     """Carrega motoristas/CNPJ cadastrados manualmente na dashboard."""
-    if not ARQUIVO_MOTORISTAS_CNPJ_EXTRA.exists():
-        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXTRA)
-
-    try:
-        df = pd.read_csv(ARQUIVO_MOTORISTAS_CNPJ_EXTRA, dtype=str).fillna("")
-    except Exception:
-        return pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXTRA)
+    db = carregar_db_motoristas()
+    if db.get("cnpj_extra"):
+        df = pd.DataFrame(db.get("cnpj_extra", []))
+    elif ARQUIVO_MOTORISTAS_CNPJ_EXTRA.exists():
+        try:
+            df = pd.read_csv(ARQUIVO_MOTORISTAS_CNPJ_EXTRA, dtype=str).fillna("")
+        except Exception:
+            df = pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXTRA)
+    else:
+        df = pd.DataFrame(columns=COLUNAS_MOTORISTAS_CNPJ_EXTRA)
 
     if "Nome Motorista" not in df.columns:
         df["Nome Motorista"] = ""
@@ -813,7 +1100,7 @@ def salvar_motorista_cnpj_extra(nome_motorista: str, cnpj: str) -> Tuple[bool, s
     df["_nome_norm"] = df["Nome Motorista"].apply(normalizar_texto)
     df = df.drop_duplicates(subset=["_nome_norm"], keep="last")
     df = df.drop(columns=["_nome_norm"]).sort_values("Nome Motorista").reset_index(drop=True)
-    df.to_csv(ARQUIVO_MOTORISTAS_CNPJ_EXTRA, index=False, encoding="utf-8-sig")
+    salvar_motoristas_cnpj_extra_df(df)
 
     # Se o motorista estava excluído, ao cadastrar novamente ele volta para a base aplicada.
     remover_motorista_da_lista_excluidos(nome)
@@ -837,7 +1124,7 @@ def excluir_motorista_cnpj(nome_motorista: str) -> Tuple[bool, str]:
         qtd_antes = len(df_extra)
         df_extra = df_extra[df_extra["Nome Motorista"].apply(normalizar_texto) != nome_norm].copy()
         removido_manual = len(df_extra) < qtd_antes
-        df_extra.to_csv(ARQUIVO_MOTORISTAS_CNPJ_EXTRA, index=False, encoding="utf-8-sig")
+        salvar_motoristas_cnpj_extra_df(df_extra)
 
     df_excluidos = carregar_motoristas_cnpj_excluidos_csv()
     if nome_norm not in set(df_excluidos["Nome Motorista"].apply(normalizar_texto)):
@@ -1105,31 +1392,6 @@ def carregar_excel_sistema_otimizado(excel_payloads: Tuple[Tuple[str, bytes], ..
 
 
 
-def assinatura_arquivos_upload(payloads: Tuple[Tuple[str, bytes], ...]) -> Tuple[Tuple[str, int, str], ...]:
-    """Cria uma assinatura estável dos arquivos carregados para saber quando trocaram."""
-    assinatura = []
-    for nome, conteudo in payloads:
-        conteudo = conteudo or b""
-        assinatura.append((str(nome), len(conteudo), hashlib.sha256(conteudo).hexdigest()))
-    return tuple(sorted(assinatura))
-
-
-def limpar_estado_fechamento() -> None:
-    """Remove resultados e relatórios antigos sem apagar cadastros manuais."""
-    chaves_fixas = [
-        "resultado_fechamento",
-        "excel_fechamento_bytes",
-    ]
-    prefixos = ("relatorio_entregas_pdf_", "recibo_pdf_")
-
-    for chave in chaves_fixas:
-        st.session_state.pop(chave, None)
-
-    for chave in list(st.session_state.keys()):
-        if chave.startswith(prefixos):
-            st.session_state.pop(chave, None)
-
-
 def extrair_info_pdf(nome_arquivo: str, texto: str) -> Dict[str, object]:
     texto_limpo = re.sub(r"\s+", " ", texto)
 
@@ -1388,8 +1650,8 @@ def filtrar_pedidos_pagos_excel(df: pd.DataFrame, status_entregue: List[str], st
     ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
 
     df = df.copy()
-    df["É Entregue"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
-    df["É Ocorrência"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
+    df["Entregue"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
+    df["Ocorrência"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
 
     chaves_grupo = ["Pedido"]
     if "Rota Excel" in df.columns and df["Rota Excel"].astype(str).str.strip().ne("").any():
@@ -1398,8 +1660,8 @@ def filtrar_pedidos_pagos_excel(df: pd.DataFrame, status_entregue: List[str], st
     grupo = (
         df.groupby(chaves_grupo, dropna=False)
         .agg(
-            Tem_Entregue=("É Entregue", "max"),
-            Tem_Ocorrencia=("É Ocorrência", "max"),
+            Tem_Entregue=("Entregue", "max"),
+            Tem_Ocorrencia=("Ocorrência", "max"),
             CEP_Excel=("CEP Excel", "last"),
             Status_Encontrados=("Status", lambda x: " | ".join(sorted(set([str(v) for v in x if str(v).strip()])))),
         )
@@ -1492,8 +1754,8 @@ def filtrar_entregas_validas(df: pd.DataFrame, status_entregue: List[str], statu
     grupo = (
         df.groupby(["Data Rota", "Rota", "Pedido"], dropna=False)
         .agg(
-            Tem_Entregue=("É Entregue", "max"),
-            Tem_Ocorrencia=("É Ocorrência", "max"),
+            Tem_Entregue=("Entregue", "max"),
+            Tem_Ocorrencia=("Ocorrência", "max"),
             CEP=("CEP", "last"),
             Peso_Taxado_KG=("Peso Taxado KG", "max"),
             Placa=("Placa", "last"),
@@ -1711,11 +1973,11 @@ def preparar_base_bonus_excel(
     # Regra correta: ocorrência somente quando o texto do Motivo 1
     # bater com a lista de ocorrências/não pagar configurada no sidebar.
     ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
-    out["É Ocorrência"] = out["Status Normalizado"].apply(
+    out["Ocorrência"] = out["Status Normalizado"].apply(
         lambda x: any(s in x for s in ocorrencia_norm)
     ) if ocorrencia_norm else False
-    out["É Entregue"] = ~out["É Ocorrência"]
-    out["Entrega Paga"] = out["É Entregue"] & (~out["É Ocorrência"])
+    out["Entregue"] = ~out["Ocorrência"]
+    out["Entrega Paga"] = out["Entregue"] & (~out["É Ocorrência"])
 
     # Mantém todos os pedidos válidos destinados ao motorista.
     # Remove apenas registros sem pedido, sem data ou sem motorista.
@@ -1959,8 +2221,8 @@ def preparar_base_metricas_motorista_excel(
     out["É Ocorrência"] = out["Status Normalizado"].apply(
         lambda x: any(s in x for s in ocorrencia_norm)
     ) if ocorrencia_norm else False
-    out["É Entregue"] = ~out["É Ocorrência"]
-    out["Entrega Paga"] = out["É Entregue"] & (~out["É Ocorrência"])
+    out["Entregue"] = ~out["Ocorrência"]
+    out["Entrega Paga"] = out["Entregue"] & (~out["Ocorrência"])
 
     out = out[
         out["Data Entrega"].notna()
@@ -2901,22 +3163,6 @@ if arquivos_pdf_rotas:
         f.seek(0)
         pdf_payloads.append((f.name, f.read()))
 
-# Limpeza automática: quando Excel/PDF carregado muda, apaga resultados antigos
-# para evitar misturar motorista/rota de um fechamento anterior.
-assinatura_atual_arquivos = (
-    assinatura_arquivos_upload(tuple(excel_payloads)),
-    assinatura_arquivos_upload(tuple(pdf_payloads)),
-)
-assinatura_anterior_arquivos = st.session_state.get("assinatura_arquivos_processados")
-
-if assinatura_anterior_arquivos is None:
-    st.session_state["assinatura_arquivos_processados"] = assinatura_atual_arquivos
-elif assinatura_anterior_arquivos != assinatura_atual_arquivos:
-    limpar_estado_fechamento()
-    st.cache_data.clear()
-    st.session_state["assinatura_arquivos_processados"] = assinatura_atual_arquivos
-    st.rerun()
-
 pdf_motoristas_tuple = extrair_motoristas_placas_dos_pdfs_cache(tuple(pdf_payloads)) if pdf_payloads else tuple()
 
 st.sidebar.markdown("---")
@@ -3311,14 +3557,6 @@ status_ocorrencia = st.sidebar.text_area(
 ).splitlines()
 
 st.sidebar.markdown("---")
-
-if st.sidebar.button("🧹 Limpar cache / começar novo fechamento", use_container_width=True):
-    limpar_estado_fechamento()
-    st.cache_data.clear()
-    st.session_state["assinatura_arquivos_processados"] = assinatura_atual_arquivos
-    st.sidebar.success("Cache limpo. Você pode processar novamente.")
-    st.rerun()
-
 processar = st.sidebar.button("🚀 Processar fechamento", use_container_width=True)
 
 
@@ -3326,10 +3564,6 @@ processar = st.sidebar.button("🚀 Processar fechamento", use_container_width=T
 # PROCESSAMENTO
 # =========================================================
 if processar:
-    # Ao processar novamente, remove apenas resultados/relatórios antigos
-    # e mantém o cache de leitura dos arquivos atuais para ganhar velocidade.
-    limpar_estado_fechamento()
-
     resultado_cache = processar_fechamento_cache(
         excel_payloads=tuple(excel_payloads),
         pdf_payloads=tuple(pdf_payloads),
@@ -3405,44 +3639,10 @@ if df_dia.empty:
     st.warning("Nenhuma entrega paga foi encontrada com as regras configuradas.")
     st.stop()
 
-# MOTORISTA PRINCIPAL DA DASHBOARD
-# A partir desta versão, a dashboard passa a respeitar o motorista dos PDFs carregados.
-# Esse mesmo motorista selecionado será usado no indicador, fechamento diário e recibo.
-motoristas_pdf = []
-
-if isinstance(df_pdf_info, pd.DataFrame) and not df_pdf_info.empty and "Motorista PDF" in df_pdf_info.columns:
-    motoristas_pdf = sorted([
-        m for m in df_pdf_info["Motorista PDF"].fillna("").astype(str).str.upper().str.strip().unique()
-        if m
-    ])
-
-# Fallback: se por algum motivo o nome não for extraído do cabeçalho do PDF,
-# usa os motoristas que ficaram no fechamento gerado a partir dos próprios PDFs.
-if not motoristas_pdf and isinstance(df_dia, pd.DataFrame) and not df_dia.empty and "Motorista Final" in df_dia.columns:
-    motoristas_pdf = sorted([
-        m for m in df_dia["Motorista Final"].fillna("").astype(str).str.upper().str.strip().unique()
-        if m
-    ])
-
-if not motoristas_pdf:
-    st.warning("Não consegui identificar o motorista nos PDFs carregados. Verifique se o PDF possui o campo Motorista.")
-    st.stop()
-
-if len(motoristas_pdf) == 1:
-    motorista_selecionado_dashboard = motoristas_pdf[0]
-    st.info(f"Motorista identificado nos PDFs: **{motorista_selecionado_dashboard}**")
-else:
-    motorista_selecionado_dashboard = st.selectbox(
-        "Motorista dos PDFs",
-        motoristas_pdf,
-        index=0,
-        key="motorista_pdf_dashboard",
-        help="Lista formada somente com motoristas encontrados nos PDFs carregados.",
-    )
-
 # IMPORTANTE:
-# O indicador do motorista usa informações do Excel, mas SEMPRE filtradas pelo motorista dos PDFs.
-# Isso evita misturar o indicador de um motorista com o fechamento diário de outro.
+# O indicador do motorista usa SOMENTE informações do Excel.
+# Ele não usa PDF e não usa df_pagamento como fallback, porque df_pagamento contém
+# apenas entregas pagas e pode mascarar devoluções/recusas/não entregues.
 
 df_metricas_fonte_excel = pd.DataFrame()
 if isinstance(df_metricas_excel, pd.DataFrame) and not df_metricas_excel.empty:
@@ -3457,9 +3657,25 @@ indicador_excel_disponivel = (
     and colunas_minimas_indicador.issubset(set(df_metricas_fonte_excel.columns))
 )
 
-# Lista oficial para os seletores desta tela: somente motoristas dos PDFs.
-motoristas = motoristas_pdf
-motorista_indicador = motorista_selecionado_dashboard
+if indicador_excel_disponivel:
+    motoristas = sorted([
+        m for m in df_metricas_fonte_excel["Motorista Final"].fillna("").astype(str).str.upper().str.strip().unique()
+        if m
+    ])
+else:
+    motoristas = sorted([m for m in df_dia["Motorista Final"].fillna("").astype(str).unique() if m.strip()])
+
+# O indicador usa o primeiro motorista quando houver apenas um.
+# Quando houver mais de um motorista, o usuário pode selecionar qual deseja visualizar.
+if len(motoristas) == 1:
+    motorista_indicador = motoristas[0]
+else:
+    motorista_indicador = st.selectbox(
+        "Motorista para o indicador",
+        motoristas,
+        index=0 if motoristas else None,
+        key="motorista_indicador_dashboard",
+    )
 
 # Período do indicador: calculado somente em cima da data do Excel.
 # Opções:
@@ -3542,10 +3758,10 @@ if indicador_excel_disponivel:
 
     total_pedidos_metricas_motorista = int(len(df_metricas_periodo))
 
-    if "É Entregue" in df_metricas_periodo.columns and "É Ocorrência" in df_metricas_periodo.columns:
+    if "Entregue" in df_metricas_periodo.columns and "Ocorrência" in df_metricas_periodo.columns:
         entregas_realizadas_metricas_periodo = int((
-            df_metricas_periodo["É Entregue"].fillna(False).astype(bool)
-            & ~df_metricas_periodo["É Ocorrência"].fillna(False).astype(bool)
+            df_metricas_periodo["Entregue"].fillna(False).astype(bool)
+            & ~df_metricas_periodo["Ocorrência"].fillna(False).astype(bool)
         ).sum())
     elif "Entrega Paga" in df_metricas_periodo.columns:
         entregas_realizadas_metricas_periodo = int(df_metricas_periodo["Entrega Paga"].fillna(False).astype(bool).sum())
@@ -3632,8 +3848,8 @@ if not df_metricas_periodo.empty:
             "Motivo 1",
             "Status Indicador",
             "Entrega Paga",
-            "É Entregue",
-            "É Ocorrência",
+            "Entregue",
+            "Ocorrência",
         ]
         cols_metricas = [c for c in cols_metricas if c in df_metricas_view.columns]
         st.dataframe(df_metricas_view[cols_metricas], use_container_width=True, height=260)
@@ -3642,12 +3858,16 @@ st.markdown("---")
 
 st.markdown('<div class="section-heading">Fechamento diário por entregador</div>', unsafe_allow_html=True)
 
-st.caption(f"Fechamento filtrado pelo motorista selecionado nos PDFs: **{motorista_selecionado_dashboard}**")
+motoristas_disponiveis_fechamento = sorted(
+    df_dia["Motorista Final"].dropna().astype(str).str.strip().unique()
+) if "Motorista Final" in df_dia.columns else []
+motoristas_disponiveis_fechamento = [m for m in motoristas_disponiveis_fechamento if m]
+
+motorista_filtro = st.multiselect("Filtrar entregador", motoristas_disponiveis_fechamento, default=motoristas_disponiveis_fechamento)
 
 df_dia_view = df_dia.copy()
-if "Motorista Final" in df_dia_view.columns:
-    df_dia_view["Motorista Final"] = df_dia_view["Motorista Final"].fillna("").astype(str).str.upper().str.strip()
-    df_dia_view = df_dia_view[df_dia_view["Motorista Final"] == motorista_selecionado_dashboard]
+if motorista_filtro:
+    df_dia_view = df_dia_view[df_dia_view["Motorista Final"].isin(motorista_filtro)]
 
 df_dia_view_display = df_dia_view.copy()
 # Organiza as colunas do fechamento diário para mostrar o Peso Taxado usado no cálculo.
@@ -3675,13 +3895,11 @@ st.markdown('<div class="section-heading">Gerar relatório de entregas / recibo 
 col_rec1, col_rec_q, col_rec2, col_rec3 = st.columns([2.0, 1.2, 1.3, 1.3])
 
 with col_rec1:
-    st.text_input(
+    motorista_recibo = st.selectbox(
         "Motorista para o recibo",
-        value=motorista_selecionado_dashboard,
-        disabled=True,
-        help="O recibo usa o mesmo motorista identificado/selecionado nos PDFs carregados.",
+        motoristas,
+        index=0 if motoristas else None,
     )
-    motorista_recibo = motorista_selecionado_dashboard
 
 with col_rec_q:
     quinzena_recibo = st.selectbox(
@@ -3914,7 +4132,7 @@ else:
             )
     else:
         if bonus_bloqueado:
-            st.info("Bônus feriado não aplicado porque a liberação por senha está bloqueada.")
+            st.info("Bônus sábado não aplicado porque o prestador não cumpriu requisitos.")
         elif datas_feriado_txt.strip():
             st.info("Bônus de feriado foi identificado apenas para pagamento na 2ª quinzena.")
         else:
