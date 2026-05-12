@@ -3396,7 +3396,7 @@ else:
 # - Mês todo: todos os dias disponíveis no Excel
 periodo_indicador = st.radio(
     "Período do indicador",
-    ["1ª Quinzena", "2ª Quinzena", "Mês todo"],
+    ["1ª Quinzena", "2ª Quinzena", "Mês completo"],
     index=2,
     horizontal=True,
     key="periodo_indicador_dashboard",
