@@ -3291,21 +3291,35 @@ st.markdown(
 # =========================================================
 st.sidebar.header("📁 Arquivos")
 
+if "upload_reset_counter" not in st.session_state:
+    st.session_state["upload_reset_counter"] = 0
+
 if st.sidebar.button("🧹 Limpar cache", use_container_width=True):
     st.cache_data.clear()
-    st.sidebar.success("Cache limpo com sucesso!")
+    novo_contador_upload = int(st.session_state.get("upload_reset_counter", 0)) + 1
+    for chave in list(st.session_state.keys()):
+        del st.session_state[chave]
+    st.session_state["upload_reset_counter"] = novo_contador_upload
+    st.session_state["cache_limpo_msg"] = True
     st.rerun()
+
+if st.session_state.pop("cache_limpo_msg", False):
+    st.sidebar.success("Cache e arquivos carregados foram limpos com sucesso!")
+
+_upload_reset_counter = int(st.session_state.get("upload_reset_counter", 0))
 
 arquivos_excel_sistema = st.sidebar.file_uploader(
     "Planilha da quinzena / sistema",
     type=["xlsx", "xls"],
     accept_multiple_files=True,
+    key=f"arquivos_excel_sistema_{_upload_reset_counter}",
 )
 
 arquivos_pdf_rotas = st.sidebar.file_uploader(
     "PDFs das rotas",
     type=["pdf"],
     accept_multiple_files=True,
+    key=f"arquivos_pdf_rotas_{_upload_reset_counter}",
 )
 
 st.sidebar.success("Base de valores por CEP e placas carregada internamente.")
