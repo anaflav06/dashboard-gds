@@ -2236,6 +2236,26 @@ def criar_excel_fechamento(
         colunas_export = [c for c in colunas_export if c in df_dia_export.columns]
         df_dia_export = df_dia_export[colunas_export]
 
+        colunas_adicionais = [
+            "Subtotal", "Acareação", "Bônus Extr", "Bônus Sáb",
+            "Bônus Feri", "Vale", "Desconto",
+        ]
+        for col in colunas_adicionais:
+            df_dia_export[col] = ""
+
+        if not df_dia_export.empty:
+            subtotal_base = 0.0
+            if "Total_Dia" in df_dia_export.columns:
+                subtotal_base = float(pd.to_numeric(df_dia_export["Total_Dia"], errors="coerce").fillna(0).sum())
+
+            df_dia_export.loc[df_dia_export.index[0], "Subtotal"] = subtotal_base
+            df_dia_export.loc[df_dia_export.index[0], "Acareação"] = to_float(acareacao_relatorio)
+            df_dia_export.loc[df_dia_export.index[0], "Bônus Extr"] = to_float(bonus_extra_relatorio)
+            df_dia_export.loc[df_dia_export.index[0], "Bônus Sáb"] = to_float(bonus_sabados_relatorio)
+            df_dia_export.loc[df_dia_export.index[0], "Bônus Feri"] = to_float(bonus_feriado_relatorio)
+            df_dia_export.loc[df_dia_export.index[0], "Vale"] = to_float(vale_relatorio)
+            df_dia_export.loc[df_dia_export.index[0], "Desconto"] = to_float(desconto_relatorio)
+
         df_dia_export.to_excel(writer, index=False, sheet_name="Fechamento diario")
         df_entregas.to_excel(writer, index=False, sheet_name="Entregas pagas")
         df_pdf_info.drop(columns=["Texto PDF"], errors="ignore").to_excel(writer, index=False, sheet_name="PDFs lidos")
@@ -2260,259 +2280,8 @@ def criar_excel_fechamento(
                 ws.write(0, idx, col, header_fmt)
                 width = max(14, min(45, max([len(str(col))] + [len(str(v)) for v in df[col].head(200).fillna("").astype(str)])))
                 ws.set_column(idx, idx, width)
-                if any(x in col.lower() for x in ["valor", "total"]):
+                if any(x in col.lower() for x in ["valor", "total", "subtotal", "acareação", "bonus", "bônus", "vale", "desconto"]):
                     ws.set_column(idx, idx, 16, money_fmt)
-
-        # Nova aba no mesmo formato do PDF "Relatório de entregas".
-        df_relatorio = df_relatorio_entregas.copy() if df_relatorio_entregas is not None else pd.DataFrame()
-        if not df_relatorio.empty:
-            ws = workbook.add_worksheet("Relatorio entregas")
-            writer.sheets["Relatorio entregas"] = ws
-
-            titulo_fmt = workbook.add_format({
-                "bold": True,
-                "font_size": 13,
-                "align": "center",
-                "valign": "vcenter",
-                "font_color": "#000000",
-            })
-            cabecalho_fmt = workbook.add_format({
-                "bold": True,
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-                "bg_color": "#FBE4D5",
-                "font_color": "#000000",
-            })
-            celula_fmt = workbook.add_format({
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-                "font_color": "#000000",
-            })
-            celula_bold_fmt = workbook.add_format({
-                "bold": True,
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-                "font_color": "#000000",
-            })
-            total_fmt = workbook.add_format({
-                "bold": True,
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-                "bg_color": "#FBE4D5",
-                "font_color": "#000000",
-            })
-            dinheiro_borda_fmt = workbook.add_format({
-                "num_format": 'R$ #,##0.00',
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-                "font_color": "#000000",
-            })
-            dinheiro_total_fmt = workbook.add_format({
-                "bold": True,
-                "num_format": 'R$ #,##0.00',
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-                "bg_color": "#FBE4D5",
-                "font_color": "#000000",
-            })
-            cinza_fmt = workbook.add_format({
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-                "bg_color": "#F2F2F2",
-                "font_color": "#000000",
-            })
-            cinza_dinheiro_fmt = workbook.add_format({
-                "num_format": 'R$ #,##0.00',
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-                "bg_color": "#F2F2F2",
-                "font_color": "#000000",
-            })
-
-            def excel_data(v):
-                try:
-                    if pd.isna(v):
-                        return ""
-                    return pd.to_datetime(v).strftime("%d/%m/%Y")
-                except Exception:
-                    return str(v)
-
-            def excel_num(v):
-                try:
-                    valor = float(v)
-                    if abs(valor - int(valor)) < 0.0001:
-                        return int(valor)
-                    return valor
-                except Exception:
-                    return 0
-
-            def normalizar_data_excel(v):
-                try:
-                    return pd.to_datetime(v).date()
-                except Exception:
-                    return v
-
-            if "Data Rota" in df_relatorio.columns:
-                df_relatorio["Data Rota"] = pd.to_datetime(df_relatorio["Data Rota"], errors="coerce")
-            else:
-                df_relatorio["Data Rota"] = pd.NaT
-
-            if "CEP Prefixo" not in df_relatorio.columns:
-                if "CEP" in df_relatorio.columns:
-                    df_relatorio["CEP Prefixo"] = (
-                        df_relatorio["CEP"]
-                        .astype(str)
-                        .str.replace(r"\D", "", regex=True)
-                        .str.zfill(8)
-                        .str[:3]
-                    )
-                else:
-                    df_relatorio["CEP Prefixo"] = ""
-
-            for col in ["Valor CEP", "KG Excedente", "Valor Excedente KG", "Total Entrega"]:
-                if col not in df_relatorio.columns:
-                    df_relatorio[col] = 0.0
-                df_relatorio[col] = df_relatorio[col].fillna(0).astype(float)
-
-            if "Pedido" not in df_relatorio.columns:
-                df_relatorio["Pedido"] = ""
-
-            df_relatorio = df_relatorio.sort_values(["Data Rota", "CEP Prefixo", "Pedido"], kind="mergesort")
-
-            total_entregas = int(len(df_relatorio))
-            total_valor_entregas = float(df_relatorio["Valor CEP"].sum())
-            total_valor_kg = float(df_relatorio["Valor Excedente KG"].sum())
-            subtotal_base = float(df_relatorio["Total Entrega"].sum())
-
-            acareacao = max(0.0, to_float(acareacao_relatorio))
-            vale = max(0.0, to_float(vale_relatorio))
-            desconto = max(0.0, to_float(desconto_relatorio))
-            bonus_extra = max(0.0, to_float(bonus_extra_relatorio))
-            bonus_sabados = max(0.0, to_float(bonus_sabados_relatorio))
-            bonus_feriado = max(0.0, to_float(bonus_feriado_relatorio))
-            total_geral = subtotal_base + acareacao + bonus_extra + bonus_sabados + bonus_feriado - vale - desconto
-
-            periodo_txt = f"{excel_data(data_inicio_relatorio)} a {excel_data(data_fim_relatorio)}"
-            quinzena_txt = limpar_texto(quinzena_relatorio) or "Não informado"
-            motorista_txt = limpar_texto(motorista_relatorio).upper() or "Não informado"
-            cnpj_txt = limpar_texto(cnpj_motorista_relatorio) or obter_cnpj_motorista(motorista_txt)
-
-            ws.hide_gridlines(2)
-            ws.set_column("A:A", 15)
-            ws.set_column("B:B", 39)
-            ws.set_column("C:C", 13)
-            ws.set_column("D:D", 17)
-            ws.set_column("E:E", 16)
-            ws.set_column("F:F", 19)
-
-            # Título e cabeçalho do relatório.
-            ws.merge_range("A1:F1", "Relatório de entregas realizadas", titulo_fmt)
-            ws.merge_range("A2:B2", "Nome do Entregador", cabecalho_fmt)
-            ws.merge_range("C2:D2", "CNPJ", cabecalho_fmt)
-            ws.merge_range("E2:F2", "Quinzena", cabecalho_fmt)
-            ws.merge_range("A3:B3", motorista_txt, celula_fmt)
-            ws.merge_range("C3:D3", cnpj_txt, celula_fmt)
-            ws.merge_range("E3:F3", quinzena_txt, celula_fmt)
-
-            ws.merge_range("A4:B4", "Período", cabecalho_fmt)
-            ws.merge_range("C4:D4", "Total de Entregas", cabecalho_fmt)
-            ws.merge_range("E4:F4", "Total do Relatório", cabecalho_fmt)
-            ws.merge_range("A5:B5", periodo_txt, celula_fmt)
-            ws.merge_range("C5:D5", total_entregas, celula_fmt)
-            ws.merge_range("E5:F5", total_geral, dinheiro_borda_fmt)
-
-            tabela_linhas = [["DATA", "DESCRIÇÃO", "CEP", "VALOR", "QUANTIDADE", "TOTAL"]]
-
-            df_resumo = df_relatorio.copy()
-            df_resumo["Data Agrupamento"] = pd.to_datetime(df_resumo["Data Rota"], errors="coerce").dt.date
-            df_resumo["CEP Prefixo"] = df_resumo["CEP Prefixo"].astype(str).apply(normalizar_prefixo_cep)
-
-            resumo_data_cep = (
-                df_resumo.groupby(["Data Agrupamento", "CEP Prefixo", "Valor CEP"], dropna=False)
-                .agg(
-                    Quantidade=("Pedido", "size"),
-                    Total=("Valor CEP", "sum"),
-                    KG_Excedente=("KG Excedente", "sum"),
-                    Total_KG=("Valor Excedente KG", "sum"),
-                    Total_Geral=("Total Entrega", "sum"),
-                )
-                .reset_index()
-                .sort_values(["Data Agrupamento", "CEP Prefixo", "Valor CEP"], kind="mergesort")
-            )
-
-            for _, row in resumo_data_cep.iterrows():
-                data_linha = normalizar_data_excel(row.get("Data Agrupamento"))
-                cep_prefixo = normalizar_prefixo_cep(row.get("CEP Prefixo", ""))
-                valor_cep = float(row.get("Valor CEP", 0) or 0)
-                qtd = int(row.get("Quantidade", 0) or 0)
-                total_entregas_cep = float(row.get("Total", 0) or 0)
-                kg_excedente = float(row.get("KG_Excedente", 0) or 0)
-                total_kg = float(row.get("Total_KG", 0) or 0)
-                total_linha = float(row.get("Total_Geral", 0) or 0)
-
-                tabela_linhas.append([data_linha, "Entregas realizadas", cep_prefixo, valor_cep, qtd, total_entregas_cep])
-
-                if kg_excedente > 0:
-                    tabela_linhas.append([data_linha, "Kg excedente acima de 10kg", cep_prefixo, 0.30, excel_num(kg_excedente), total_kg])
-                    tabela_linhas.append([data_linha, "Total com kg excedente", cep_prefixo, "", "", total_linha])
-
-            tabela_linhas.append(["", "TOTAL DAS ENTREGAS", "", "", total_entregas, subtotal_base])
-
-            linha_inicio_tabela = 7
-            for r, linha in enumerate(tabela_linhas, start=linha_inicio_tabela):
-                is_header = r == linha_inicio_tabela
-                is_total = r == linha_inicio_tabela + len(tabela_linhas) - 1
-                descricao = str(linha[1]).lower() if len(linha) > 1 else ""
-                is_kg = ("kg excedente" in descricao) or ("total com kg" in descricao)
-
-                for c, valor in enumerate(linha):
-                    if is_header:
-                        fmt = cabecalho_fmt
-                    elif is_total:
-                        fmt = total_fmt if c not in [3, 5] else dinheiro_total_fmt
-                    elif is_kg:
-                        fmt = cinza_dinheiro_fmt if c in [3, 5] and isinstance(valor, (int, float)) else cinza_fmt
-                    elif c in [3, 5] and isinstance(valor, (int, float)):
-                        fmt = dinheiro_borda_fmt
-                    else:
-                        fmt = celula_fmt
-
-                    if c == 0 and hasattr(valor, "strftime"):
-                        ws.write(r - 1, c, valor.strftime("%d/%m/%Y"), fmt)
-                    else:
-                        ws.write(r - 1, c, valor, fmt)
-
-            linha_totais = linha_inicio_tabela + len(tabela_linhas) + 1
-            linhas_totais_finais = [
-                ["Total Entregas", total_valor_entregas],
-                ["Total Kg Excedente", total_valor_kg],
-                ["Subtotal", subtotal_base],
-                ["Acareação", acareacao],
-                ["Bônus Extra", bonus_extra],
-                ["Bônus Sábados", bonus_sabados],
-                ["Bônus Feriado", bonus_feriado],
-                ["Vale", -vale if vale > 0 else 0.0],
-                ["Desconto", -desconto if desconto > 0 else 0.0],
-                ["TOTAL DO RELATÓRIO", total_geral],
-            ]
-
-            for idx, linha in enumerate(linhas_totais_finais):
-                linha_excel = linha_totais + idx
-                eh_total_final = idx == len(linhas_totais_finais) - 1
-                ws.write(linha_excel - 1, 1, linha[0], total_fmt if eh_total_final else celula_fmt)
-                ws.write(linha_excel - 1, 2, linha[1], dinheiro_total_fmt if eh_total_final else dinheiro_borda_fmt)
-
-            ws.set_landscape()
-            ws.fit_to_pages(1, 0)
-            ws.set_margins(left=0.25, right=0.25, top=0.35, bottom=0.35)
 
     return output.getvalue()
 
