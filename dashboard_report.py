@@ -1,6 +1,7 @@
 import io
 import math
 import base64
+import hashlib
 import re
 import unicodedata
 from datetime import datetime
@@ -1102,6 +1103,31 @@ def carregar_excel_sistema_otimizado(excel_payloads: Tuple[Tuple[str, bytes], ..
             frames.append(df)
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
+
+
+def assinatura_arquivos_upload(payloads: Tuple[Tuple[str, bytes], ...]) -> Tuple[Tuple[str, int, str], ...]:
+    """Cria uma assinatura estável dos arquivos carregados para saber quando trocaram."""
+    assinatura = []
+    for nome, conteudo in payloads:
+        conteudo = conteudo or b""
+        assinatura.append((str(nome), len(conteudo), hashlib.sha256(conteudo).hexdigest()))
+    return tuple(sorted(assinatura))
+
+
+def limpar_estado_fechamento() -> None:
+    """Remove resultados e relatórios antigos sem apagar cadastros manuais."""
+    chaves_fixas = [
+        "resultado_fechamento",
+        "excel_fechamento_bytes",
+    ]
+    prefixos = ("relatorio_entregas_pdf_", "recibo_pdf_")
+
+    for chave in chaves_fixas:
+        st.session_state.pop(chave, None)
+
+    for chave in list(st.session_state.keys()):
+        if chave.startswith(prefixos):
+            st.session_state.pop(chave, None)
 
 
 def extrair_info_pdf(nome_arquivo: str, texto: str) -> Dict[str, object]:
@@ -2875,6 +2901,22 @@ if arquivos_pdf_rotas:
         f.seek(0)
         pdf_payloads.append((f.name, f.read()))
 
+# Limpeza automática: quando Excel/PDF carregado muda, apaga resultados antigos
+# para evitar misturar motorista/rota de um fechamento anterior.
+assinatura_atual_arquivos = (
+    assinatura_arquivos_upload(tuple(excel_payloads)),
+    assinatura_arquivos_upload(tuple(pdf_payloads)),
+)
+assinatura_anterior_arquivos = st.session_state.get("assinatura_arquivos_processados")
+
+if assinatura_anterior_arquivos is None:
+    st.session_state["assinatura_arquivos_processados"] = assinatura_atual_arquivos
+elif assinatura_anterior_arquivos != assinatura_atual_arquivos:
+    limpar_estado_fechamento()
+    st.cache_data.clear()
+    st.session_state["assinatura_arquivos_processados"] = assinatura_atual_arquivos
+    st.rerun()
+
 pdf_motoristas_tuple = extrair_motoristas_placas_dos_pdfs_cache(tuple(pdf_payloads)) if pdf_payloads else tuple()
 
 st.sidebar.markdown("---")
@@ -3269,6 +3311,14 @@ status_ocorrencia = st.sidebar.text_area(
 ).splitlines()
 
 st.sidebar.markdown("---")
+
+if st.sidebar.button("🧹 Limpar cache / começar novo fechamento", use_container_width=True):
+    limpar_estado_fechamento()
+    st.cache_data.clear()
+    st.session_state["assinatura_arquivos_processados"] = assinatura_atual_arquivos
+    st.sidebar.success("Cache limpo. Você pode processar novamente.")
+    st.rerun()
+
 processar = st.sidebar.button("🚀 Processar fechamento", use_container_width=True)
 
 
@@ -3276,6 +3326,10 @@ processar = st.sidebar.button("🚀 Processar fechamento", use_container_width=T
 # PROCESSAMENTO
 # =========================================================
 if processar:
+    # Ao processar novamente, remove apenas resultados/relatórios antigos
+    # e mantém o cache de leitura dos arquivos atuais para ganhar velocidade.
+    limpar_estado_fechamento()
+
     resultado_cache = processar_fechamento_cache(
         excel_payloads=tuple(excel_payloads),
         pdf_payloads=tuple(pdf_payloads),
@@ -3351,10 +3405,44 @@ if df_dia.empty:
     st.warning("Nenhuma entrega paga foi encontrada com as regras configuradas.")
     st.stop()
 
+# MOTORISTA PRINCIPAL DA DASHBOARD
+# A partir desta versão, a dashboard passa a respeitar o motorista dos PDFs carregados.
+# Esse mesmo motorista selecionado será usado no indicador, fechamento diário e recibo.
+motoristas_pdf = []
+
+if isinstance(df_pdf_info, pd.DataFrame) and not df_pdf_info.empty and "Motorista PDF" in df_pdf_info.columns:
+    motoristas_pdf = sorted([
+        m for m in df_pdf_info["Motorista PDF"].fillna("").astype(str).str.upper().str.strip().unique()
+        if m
+    ])
+
+# Fallback: se por algum motivo o nome não for extraído do cabeçalho do PDF,
+# usa os motoristas que ficaram no fechamento gerado a partir dos próprios PDFs.
+if not motoristas_pdf and isinstance(df_dia, pd.DataFrame) and not df_dia.empty and "Motorista Final" in df_dia.columns:
+    motoristas_pdf = sorted([
+        m for m in df_dia["Motorista Final"].fillna("").astype(str).str.upper().str.strip().unique()
+        if m
+    ])
+
+if not motoristas_pdf:
+    st.warning("Não consegui identificar o motorista nos PDFs carregados. Verifique se o PDF possui o campo Motorista.")
+    st.stop()
+
+if len(motoristas_pdf) == 1:
+    motorista_selecionado_dashboard = motoristas_pdf[0]
+    st.info(f"Motorista identificado nos PDFs: **{motorista_selecionado_dashboard}**")
+else:
+    motorista_selecionado_dashboard = st.selectbox(
+        "Motorista dos PDFs",
+        motoristas_pdf,
+        index=0,
+        key="motorista_pdf_dashboard",
+        help="Lista formada somente com motoristas encontrados nos PDFs carregados.",
+    )
+
 # IMPORTANTE:
-# O indicador do motorista usa SOMENTE informações do Excel.
-# Ele não usa PDF e não usa df_pagamento como fallback, porque df_pagamento contém
-# apenas entregas pagas e pode mascarar devoluções/recusas/não entregues.
+# O indicador do motorista usa informações do Excel, mas SEMPRE filtradas pelo motorista dos PDFs.
+# Isso evita misturar o indicador de um motorista com o fechamento diário de outro.
 
 df_metricas_fonte_excel = pd.DataFrame()
 if isinstance(df_metricas_excel, pd.DataFrame) and not df_metricas_excel.empty:
@@ -3369,25 +3457,9 @@ indicador_excel_disponivel = (
     and colunas_minimas_indicador.issubset(set(df_metricas_fonte_excel.columns))
 )
 
-if indicador_excel_disponivel:
-    motoristas = sorted([
-        m for m in df_metricas_fonte_excel["Motorista Final"].fillna("").astype(str).str.upper().str.strip().unique()
-        if m
-    ])
-else:
-    motoristas = sorted([m for m in df_dia["Motorista Final"].fillna("").astype(str).unique() if m.strip()])
-
-# O indicador usa o primeiro motorista quando houver apenas um.
-# Quando houver mais de um motorista, o usuário pode selecionar qual deseja visualizar.
-if len(motoristas) == 1:
-    motorista_indicador = motoristas[0]
-else:
-    motorista_indicador = st.selectbox(
-        "Motorista para o indicador",
-        motoristas,
-        index=0 if motoristas else None,
-        key="motorista_indicador_dashboard",
-    )
+# Lista oficial para os seletores desta tela: somente motoristas dos PDFs.
+motoristas = motoristas_pdf
+motorista_indicador = motorista_selecionado_dashboard
 
 # Período do indicador: calculado somente em cima da data do Excel.
 # Opções:
@@ -3570,16 +3642,12 @@ st.markdown("---")
 
 st.markdown('<div class="section-heading">Fechamento diário por entregador</div>', unsafe_allow_html=True)
 
-motoristas_disponiveis_fechamento = sorted(
-    df_dia["Motorista Final"].dropna().astype(str).str.strip().unique()
-) if "Motorista Final" in df_dia.columns else []
-motoristas_disponiveis_fechamento = [m for m in motoristas_disponiveis_fechamento if m]
-
-motorista_filtro = st.multiselect("Filtrar entregador", motoristas_disponiveis_fechamento, default=motoristas_disponiveis_fechamento)
+st.caption(f"Fechamento filtrado pelo motorista selecionado nos PDFs: **{motorista_selecionado_dashboard}**")
 
 df_dia_view = df_dia.copy()
-if motorista_filtro:
-    df_dia_view = df_dia_view[df_dia_view["Motorista Final"].isin(motorista_filtro)]
+if "Motorista Final" in df_dia_view.columns:
+    df_dia_view["Motorista Final"] = df_dia_view["Motorista Final"].fillna("").astype(str).str.upper().str.strip()
+    df_dia_view = df_dia_view[df_dia_view["Motorista Final"] == motorista_selecionado_dashboard]
 
 df_dia_view_display = df_dia_view.copy()
 # Organiza as colunas do fechamento diário para mostrar o Peso Taxado usado no cálculo.
@@ -3607,11 +3675,13 @@ st.markdown('<div class="section-heading">Gerar relatório de entregas / recibo 
 col_rec1, col_rec_q, col_rec2, col_rec3 = st.columns([2.0, 1.2, 1.3, 1.3])
 
 with col_rec1:
-    motorista_recibo = st.selectbox(
+    st.text_input(
         "Motorista para o recibo",
-        motoristas,
-        index=0 if motoristas else None,
+        value=motorista_selecionado_dashboard,
+        disabled=True,
+        help="O recibo usa o mesmo motorista identificado/selecionado nos PDFs carregados.",
     )
+    motorista_recibo = motorista_selecionado_dashboard
 
 with col_rec_q:
     quinzena_recibo = st.selectbox(
