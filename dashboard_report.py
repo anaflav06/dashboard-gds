@@ -4103,9 +4103,37 @@ else:
             st.info("Bônus de feriados não entra na 1ª quinzena.")
 
     if rds_fechadas_recibo:
-        bonus_sabados_recibo = 0.0
-        bonus_feriado_recibo = 0.0
-        st.info("Como existe RD Fechada selecionada, bônus de sábado e bônus de feriado não serão aplicados neste recibo. A RD Fechada entra somente com o valor fixo de R$ 250,00.")
+        rds_fechadas_set = {str(rd).strip().upper() for rd in rds_fechadas_recibo if str(rd).strip()}
+        df_rd_bonus_bloqueado = df_pagamento.copy()
+        df_rd_bonus_bloqueado["Data Rota DT"] = pd.to_datetime(df_rd_bonus_bloqueado["Data Rota"], errors="coerce").dt.date
+        df_rd_bonus_bloqueado["Rota Ajuste"] = df_rd_bonus_bloqueado.get("Rota", pd.Series(dtype=str)).astype(str).str.strip().str.upper()
+        df_rd_bonus_bloqueado = df_rd_bonus_bloqueado[
+            (df_rd_bonus_bloqueado["Motorista Final"].astype(str) == str(motorista_recibo))
+            & (df_rd_bonus_bloqueado["Data Rota DT"] >= data_inicio_recibo)
+            & (df_rd_bonus_bloqueado["Data Rota DT"] <= data_fim_recibo)
+            & (df_rd_bonus_bloqueado["Rota Ajuste"].isin(rds_fechadas_set))
+        ].copy()
+
+        if not df_rd_bonus_bloqueado.empty:
+            if bonus_sabados_recibo > 0:
+                qtd_entregas_sabado_rd_fechada = int(
+                    (pd.to_datetime(df_rd_bonus_bloqueado["Data Rota"], errors="coerce").dt.weekday == 5).sum()
+                )
+                if qtd_entregas_sabado_rd_fechada > 0:
+                    bonus_sabados_recibo = max(
+                        0.0,
+                        bonus_sabados_recibo - (qtd_entregas_sabado_rd_fechada * max(0.0, to_float(valor_bonus_por_entrega)))
+                    )
+
+            if bonus_feriado_recibo > 0 and datas_feriado:
+                qtd_entregas_feriado_rd_fechada = int(df_rd_bonus_bloqueado["Data Rota DT"].isin(set(datas_feriado)).sum())
+                if qtd_entregas_feriado_rd_fechada > 0:
+                    bonus_feriado_recibo = max(
+                        0.0,
+                        bonus_feriado_recibo - (qtd_entregas_feriado_rd_fechada * max(0.0, to_float(valor_bonus_por_entrega)))
+                    )
+
+        st.info("RD Fechada aplicada somente nas RDs selecionadas. Essas RDs entram apenas com o valor fixo de R$ 250,00 e não recebem kg excedente, bônus de sábado ou bônus de feriado. As demais RDs seguem a regra normal de pagamento.")
 
     total_recibo = (
         subtotal_recibo
