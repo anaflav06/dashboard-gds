@@ -2236,7 +2236,7 @@ def criar_excel_fechamento(
 
         colunas_adicionais = [
             "Subtotal", "Acareação", "Bônus Extr", "Bônus Sáb",
-            "Bônus Feri", "Vale", "Desconto",
+            "Bônus Feri", "Vale", "Desconto", "Total",
         ]
         for col in colunas_adicionais:
             df_dia_export[col] = 0.0
@@ -2296,6 +2296,16 @@ def criar_excel_fechamento(
             bonus_feriado_total = to_float(bonus_feriado_relatorio)
             if bonus_feriado_total > 0:
                 df_dia_export.loc[idx_ultimo, "Bônus Feri"] = bonus_feriado_total
+
+            df_dia_export["Total"] = (
+                pd.to_numeric(df_dia_export["Subtotal"], errors="coerce").fillna(0.0)
+                + pd.to_numeric(df_dia_export["Acareação"], errors="coerce").fillna(0.0)
+                + pd.to_numeric(df_dia_export["Bônus Extr"], errors="coerce").fillna(0.0)
+                + pd.to_numeric(df_dia_export["Bônus Sáb"], errors="coerce").fillna(0.0)
+                + pd.to_numeric(df_dia_export["Bônus Feri"], errors="coerce").fillna(0.0)
+                - pd.to_numeric(df_dia_export["Vale"], errors="coerce").fillna(0.0)
+                - pd.to_numeric(df_dia_export["Desconto"], errors="coerce").fillna(0.0)
+            )
 
         df_dia_export.to_excel(writer, index=False, sheet_name="Fechamento diario")
         df_entregas.to_excel(writer, index=False, sheet_name="Entregas pagas")
