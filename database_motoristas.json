@@ -1,1 +1,221 @@
-[]
+{
+  "cnpj_extra": [
+    {
+      "Nome Motorista": "ALESSANDRA NASCIMENTO MARCELINO",
+      "CNPJ": "36.972.000/0001-09"
+    },
+    {
+      "Nome Motorista": "ALEXANDRE ANGELO MARCONDES",
+      "CNPJ": "45.916.701/0001-03"
+    },
+    {
+      "Nome Motorista": "ALEXANDRE MARTINS DE SOUZA",
+      "CNPJ": "27.765.524/0001-20"
+    },
+    {
+      "Nome Motorista": "ALEXANDRE PAIVA FERREIRA",
+      "CNPJ": "24.540.298/0001-90"
+    },
+    {
+      "Nome Motorista": "ALEXANDRE SILVA SOUZA",
+      "CNPJ": "37.548.275/0001-74"
+    },
+    {
+      "Nome Motorista": "ALVARO LUIS SALLES CARDOSO DE SOUSA",
+      "CNPJ": "35.800.681/0001-57"
+    },
+    {
+      "Nome Motorista": "ANA CLAUDIA GOMES DAMASCENO",
+      "CNPJ": "50.427.477/0111-26"
+    },
+    {
+      "Nome Motorista": "ANA MARCIANO",
+      "CNPJ": "00.000.000/0000-00"
+    },
+    {
+      "Nome Motorista": "ANDERSON ALVES DA SILVA",
+      "CNPJ": "58.640.898/0001-42"
+    },
+    {
+      "Nome Motorista": "ARTHUR FREITAS MESQUITA",
+      "CNPJ": "64.126.712/0001-34"
+    },
+    {
+      "Nome Motorista": "CAMILA GOMES DA SILVA",
+      "CNPJ": "61.861.713/0001-34"
+    },
+    {
+      "Nome Motorista": "CARLOS EDUARDO ZACHARIAS",
+      "CNPJ": "21.359.777/0001-17"
+    },
+    {
+      "Nome Motorista": "CINTIA CAVALCANTE DO NASCIMENTO",
+      "CNPJ": "52.583.239/0001-35"
+    },
+    {
+      "Nome Motorista": "COSME VIEIRA GARCIA",
+      "CNPJ": "47.176.105/0001-60"
+    },
+    {
+      "Nome Motorista": "DENIS JOSE DOS SANTOS",
+      "CNPJ": "61.079.733/0001-58"
+    },
+    {
+      "Nome Motorista": "DENYS LIMA RIBEIRO DE SOUZA",
+      "CNPJ": "60.633.174/0001-13"
+    },
+    {
+      "Nome Motorista": "DERICK SILVA ARRUDA",
+      "CNPJ": "57.262.482/0001-75"
+    },
+    {
+      "Nome Motorista": "FABIANO GOMES NORBERTO",
+      "CNPJ": "61.415.040/0001-99"
+    },
+    {
+      "Nome Motorista": "FABIO ALEXANDRE RODRIGUES DE JESUS",
+      "CNPJ": "30.063.257/0001-53"
+    },
+    {
+      "Nome Motorista": "FABIO GARCIA MOREIRA",
+      "CNPJ": "57.966.760/0001-75"
+    },
+    {
+      "Nome Motorista": "FELIPE AUGUSTO NOGUEIRA MORAIS",
+      "CNPJ": "64.252.665/0001-75"
+    },
+    {
+      "Nome Motorista": "FERNANDO RIPAMONTI CUEBAS",
+      "CNPJ": "45.035.459/0001-69"
+    },
+    {
+      "Nome Motorista": "FERNANDO SILVA NASCIMENTO",
+      "CNPJ": "57.529.593/0001-03"
+    },
+    {
+      "Nome Motorista": "GUSTAVO NOVAES SILVA",
+      "CNPJ": "64.317.201/0001-08"
+    },
+    {
+      "Nome Motorista": "ISAQUE FERNANDO DA COSTA MARTINS SILVA",
+      "CNPJ": "62.346.255/0001-68"
+    },
+    {
+      "Nome Motorista": "JAIMILTON ALVES MOREIRA RODRIGUES",
+      "CNPJ": "55.127.216/0001-04"
+    },
+    {
+      "Nome Motorista": "JEFFERSON NOVAIS DE OLIVEIRA",
+      "CNPJ": "30.226.280/0001-11"
+    },
+    {
+      "Nome Motorista": "JESSICA PEREIRA DOS SANTOS",
+      "CNPJ": "48.847.009/0001-69"
+    },
+    {
+      "Nome Motorista": "JOSE CLAUDINEY DA SILVA",
+      "CNPJ": "18.036.024/0001-66"
+    },
+    {
+      "Nome Motorista": "JOSE LUIZ CANDIDO",
+      "CNPJ": "18.036.024/0001-66"
+    },
+    {
+      "Nome Motorista": "JOSE WILSON DA SILVA",
+      "CNPJ": "63.728.550/0001-41"
+    },
+    {
+      "Nome Motorista": "JULIANA CARVALHO LEBRE",
+      "CNPJ": "55.478.354/0001-38"
+    },
+    {
+      "Nome Motorista": "KAUA FERNANDES BRANDÃO SILVA",
+      "CNPJ": "54.476.632/0001-87"
+    },
+    {
+      "Nome Motorista": "LUCAS FAGUNDES DE LIMA",
+      "CNPJ": "26.985.251/0001-66"
+    },
+    {
+      "Nome Motorista": "LUIZ CARLOS MARQUES",
+      "CNPJ": "42.929.833/0001-81"
+    },
+    {
+      "Nome Motorista": "MARCELO SANTOS PRAÇA",
+      "CNPJ": "40.218.730/0001-88"
+    },
+    {
+      "Nome Motorista": "MARCOS ANTONIO ARAUJO GOMES",
+      "CNPJ": "31.851.508/0001-27"
+    },
+    {
+      "Nome Motorista": "MARCOS VINICIUS DOS SANTOS FERREIRA",
+      "CNPJ": "61.588.016/0001-51"
+    },
+    {
+      "Nome Motorista": "MATHEUS LUIZ FERREIRA",
+      "CNPJ": "65.274.932/0001-78"
+    },
+    {
+      "Nome Motorista": "MAURICIO RAMOS",
+      "CNPJ": "43.102.624/0001-22"
+    },
+    {
+      "Nome Motorista": "MAURO ALGAVES",
+      "CNPJ": "34.247.737/0001-25"
+    },
+    {
+      "Nome Motorista": "PAULO EDSON FERNANDES",
+      "CNPJ": "60.580.076/0001-65"
+    },
+    {
+      "Nome Motorista": "RAPHAEL BARBOSA TEIXEIRA",
+      "CNPJ": "37.385.753/0001-72"
+    },
+    {
+      "Nome Motorista": "REGINALDO GONCALVES DOS SANTOS",
+      "CNPJ": "26.561.607/0001-34"
+    },
+    {
+      "Nome Motorista": "SAMIRA MARIA RODRIGUES SOBRINHO SILVA",
+      "CNPJ": "52.959.490/0001-51"
+    },
+    {
+      "Nome Motorista": "SEBASTIÃO ROCHA DA SILVA",
+      "CNPJ": "59.196.445/0001-31"
+    },
+    {
+      "Nome Motorista": "SILVIO PEDRO ROBERTO",
+      "CNPJ": "59.989.591/0001-14"
+    },
+    {
+      "Nome Motorista": "SIRLENE ALMEIDA DA COSTA",
+      "CNPJ": "21.123.958/0001-40"
+    },
+    {
+      "Nome Motorista": "VANESSA OLIVEIRA SANTOS MARANGONI",
+      "CNPJ": "64.379.294/0001-97"
+    },
+    {
+      "Nome Motorista": "VINICIUS ALVES FERREIRA DE ARAUJO",
+      "CNPJ": "64.983.884/0001-24"
+    },
+    {
+      "Nome Motorista": "WALLAS AMARANTE ALVES DOS SANTOS",
+      "CNPJ": "45.765.135/0001-86"
+    },
+    {
+      "Nome Motorista": "WESLEY SILVA DE PAULA",
+      "CNPJ": "33.908.396/0001-29"
+    },
+    {
+      "Nome Motorista": "WILLIAM SOUZA SANTOS",
+      "CNPJ": "18.766.429/0001-50"
+    },
+    {
+      "Nome Motorista": "YAEL DE CASTRO FERREIRA GOMES",
+      "CNPJ": "33.908.396/0001-29"
+    }
+  ],
+  "cnpj_excluidos": []
+}
