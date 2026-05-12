@@ -3787,7 +3787,11 @@ with c2:
 with c3:
     st.markdown(f'<div class="kpi-card"><div class="kpi-title">Rotas</div><div class="kpi-value">{total_rotas}</div></div>', unsafe_allow_html=True)
 with c4:
-    st.markdown(f'<div class="kpi-card"><div class="kpi-title">Total a pagar</div><div class="kpi-value">{moeda(valor_total)}</div></div>', unsafe_allow_html=True)
+    total_a_pagar_placeholder = st.empty()
+    total_a_pagar_placeholder.markdown(
+        f'<div class="kpi-card"><div class="kpi-title">Total a pagar</div><div class="kpi-value">{moeda(valor_total)}</div></div>',
+        unsafe_allow_html=True,
+    )
 
 
 # =========================================================
@@ -4141,6 +4145,17 @@ else:
         - vale_recibo
         - desconto_recibo
     )
+
+    # Atualiza o card superior "Total a pagar" conforme os ajustes do recibo.
+    # Assim o total acompanha acareação, bônus, RD fechada, vale e desconto selecionados abaixo.
+    try:
+        total_a_pagar_placeholder.markdown(
+            f'<div class="kpi-card"><div class="kpi-title">Total a pagar</div><div class="kpi-value">{moeda(total_recibo)}</div></div>',
+            unsafe_allow_html=True,
+        )
+    except Exception:
+        pass
+
     qtd_recibo = int(len(df_recibo))
     kg_recibo = float(df_recibo["KG Excedente"].sum())
 
