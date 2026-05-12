@@ -3970,10 +3970,6 @@ cols_show = [c for c in cols_show if c in df_pagamento_display.columns]
 
 st.dataframe(df_pagamento_display[cols_show], use_container_width=True, height=520)
 
-if not df_bonus_excel.empty:
-    with st.expander("Base completa do Excel usada para bônus e métricas", expanded=False):
-        df_bonus_view = df_bonus_excel.copy()
-        st.dataframe(df_bonus_view, use_container_width=True, height=300)
 
 st.caption(
     "Regra ativa: quantidade de entregas baseada nas linhas válidas do PDF com status fechado no Excel. "
