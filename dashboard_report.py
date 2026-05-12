@@ -382,34 +382,6 @@ BASE_PLACAS_VEICULOS = [
     ("TKV4H26", "MOTO"),
     ("GYT1T09", "CARRO"),
     ("FAS1E74", "CARRO"),
-    ("DDP0E27", "CARRO"),
-    ("EFA3D04", "CARRO"),
-    ("EGW5094", "CARRO"),
-    ("ELT1G75", "CARRO"),
-    ("ERG7D64", "CARRO"),
-    ("FGM2D39", "CARRO"),
-    ("FLB9431", "CARRO"),
-    ("FLD5E76", "CARRO"),
-    ("FMG7G51", "CARRO"),
-    ("FNR5458", "CARRO"),
-    ("GEC7165", "CARRO"),
-    ("GES9C23", "CARRO"),
-    ("GGY3F88", "CARRO"),
-    ("KGW5B90", "CARRO"),
-    ("LPH4G38", "CARRO"),
-    ("PZP6G95", "CARRO"),
-    ("RFN6B24", "CARRO"),
-    ("RMF0J84", "CARRO"),
-    ("RUX5H42", "CARRO"),
-    ("AMJ3855", "MOTO"),
-    ("CDCT9653", "MOTO"),
-    ("DVW8A62", "MOTO"),
-    ("EXJ0C56", "MOTO"),
-    ("FXS1D80", "MOTO"),
-    ("GCN4G58", "MOTO"),
-    ("ALJ5C05", "CARRO"),
-    ("AMM6H37", "CARRO"),
-    ("CUD3I68", "CARRO"),
     
 ]
 
@@ -1650,8 +1622,8 @@ def filtrar_pedidos_pagos_excel(df: pd.DataFrame, status_entregue: List[str], st
     ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
 
     df = df.copy()
-    df["Entregue"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
-    df["Ocorrência"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
+    df["É Entregue"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
+    df["É Ocorrência"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
 
     chaves_grupo = ["Pedido"]
     if "Rota Excel" in df.columns and df["Rota Excel"].astype(str).str.strip().ne("").any():
@@ -1660,8 +1632,8 @@ def filtrar_pedidos_pagos_excel(df: pd.DataFrame, status_entregue: List[str], st
     grupo = (
         df.groupby(chaves_grupo, dropna=False)
         .agg(
-            Tem_Entregue=("Entregue", "max"),
-            Tem_Ocorrencia=("Ocorrência", "max"),
+            Tem_Entregue=("É Entregue", "max"),
+            Tem_Ocorrencia=("É Ocorrência", "max"),
             CEP_Excel=("CEP Excel", "last"),
             Status_Encontrados=("Status", lambda x: " | ".join(sorted(set([str(v) for v in x if str(v).strip()])))),
         )
@@ -1747,15 +1719,15 @@ def filtrar_entregas_validas(df: pd.DataFrame, status_entregue: List[str], statu
     ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
 
     df = df.copy()
-    df["Entregue"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
-    df["Ocorrência"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
+    df["É Entregue"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in entregue_norm)) if entregue_norm else False
+    df["É Ocorrência"] = df["Status Normalizado"].apply(lambda x: any(s in x for s in ocorrencia_norm)) if ocorrencia_norm else False
 
     # Validação por ROTA x DIA x PEDIDO.
     grupo = (
         df.groupby(["Data Rota", "Rota", "Pedido"], dropna=False)
         .agg(
-            Tem_Entregue=("Entregue", "max"),
-            Tem_Ocorrencia=("Ocorrência", "max"),
+            Tem_Entregue=("É Entregue", "max"),
+            Tem_Ocorrencia=("É Ocorrência", "max"),
             CEP=("CEP", "last"),
             Peso_Taxado_KG=("Peso Taxado KG", "max"),
             Placa=("Placa", "last"),
@@ -1973,11 +1945,11 @@ def preparar_base_bonus_excel(
     # Regra correta: ocorrência somente quando o texto do Motivo 1
     # bater com a lista de ocorrências/não pagar configurada no sidebar.
     ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
-    out["Ocorrência"] = out["Status Normalizado"].apply(
+    out["É Ocorrência"] = out["Status Normalizado"].apply(
         lambda x: any(s in x for s in ocorrencia_norm)
     ) if ocorrencia_norm else False
-    out["Entregue"] = ~out["Ocorrência"]
-    out["Entrega Paga"] = out["Entregue"] & (~out["Ocorrência"])
+    out["É Entregue"] = ~out["É Ocorrência"]
+    out["Entrega Paga"] = out["É Entregue"] & (~out["É Ocorrência"])
 
     # Mantém todos os pedidos válidos destinados ao motorista.
     # Remove apenas registros sem pedido, sem data ou sem motorista.
@@ -2218,11 +2190,11 @@ def preparar_base_metricas_motorista_excel(
     # Regra correta: ocorrência somente quando o texto do Motivo 1
     # bater com a lista de ocorrências/não pagar configurada no sidebar.
     ocorrencia_norm = [normalizar_texto(x) for x in status_ocorrencia if str(x).strip()]
-    out["Ocorrência"] = out["Status Normalizado"].apply(
+    out["É Ocorrência"] = out["Status Normalizado"].apply(
         lambda x: any(s in x for s in ocorrencia_norm)
     ) if ocorrencia_norm else False
-    out["Entregue"] = ~out["Ocorrência"]
-    out["Entrega Paga"] = out["Entregue"] & (~out["Ocorrência"])
+    out["É Entregue"] = ~out["É Ocorrência"]
+    out["Entrega Paga"] = out["É Entregue"] & (~out["É Ocorrência"])
 
     out = out[
         out["Data Entrega"].notna()
@@ -3135,6 +3107,11 @@ st.markdown(
 # =========================================================
 st.sidebar.header("📁 Arquivos")
 
+if st.sidebar.button("🧹 Limpar cache", use_container_width=True):
+    st.cache_data.clear()
+    st.sidebar.success("Cache limpo com sucesso!")
+    st.rerun()
+
 arquivos_excel_sistema = st.sidebar.file_uploader(
     "Planilha da quinzena / sistema",
     type=["xlsx", "xls"],
@@ -3758,10 +3735,10 @@ if indicador_excel_disponivel:
 
     total_pedidos_metricas_motorista = int(len(df_metricas_periodo))
 
-    if "Entregue" in df_metricas_periodo.columns and "Ocorrência" in df_metricas_periodo.columns:
+    if "É Entregue" in df_metricas_periodo.columns and "É Ocorrência" in df_metricas_periodo.columns:
         entregas_realizadas_metricas_periodo = int((
-            df_metricas_periodo["Entregue"].fillna(False).astype(bool)
-            & ~df_metricas_periodo["Ocorrência"].fillna(False).astype(bool)
+            df_metricas_periodo["É Entregue"].fillna(False).astype(bool)
+            & ~df_metricas_periodo["É Ocorrência"].fillna(False).astype(bool)
         ).sum())
     elif "Entrega Paga" in df_metricas_periodo.columns:
         entregas_realizadas_metricas_periodo = int(df_metricas_periodo["Entrega Paga"].fillna(False).astype(bool).sum())
@@ -3848,8 +3825,8 @@ if not df_metricas_periodo.empty:
             "Motivo 1",
             "Status Indicador",
             "Entrega Paga",
-            "Entregue",
-            "Ocorrência",
+            "É Entregue",
+            "É Ocorrência",
         ]
         cols_metricas = [c for c in cols_metricas if c in df_metricas_view.columns]
         st.dataframe(df_metricas_view[cols_metricas], use_container_width=True, height=260)
@@ -4132,7 +4109,7 @@ else:
             )
     else:
         if bonus_bloqueado:
-            st.info("Bônus sábado não aplicado porque o prestador não cumpriu requisitos.")
+            st.info("Bônus feriado não aplicado porque a liberação por senha está bloqueada.")
         elif datas_feriado_txt.strip():
             st.info("Bônus de feriado foi identificado apenas para pagamento na 2ª quinzena.")
         else:
