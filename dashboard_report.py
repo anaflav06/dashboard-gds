@@ -2208,7 +2208,23 @@ def preparar_base_metricas_motorista_excel(
 
 
 @st.cache_data(show_spinner=False)
-def criar_excel_fechamento(df_dia, df_entregas, df_pdf_info) -> bytes:
+def criar_excel_fechamento(
+    df_dia,
+    df_entregas,
+    df_pdf_info,
+    df_relatorio: Optional[pd.DataFrame] = None,
+    motorista_relatorio: str = "",
+    data_inicio_relatorio=None,
+    data_fim_relatorio=None,
+    quinzena_relatorio: str = "",
+    acareacao: float = 0.0,
+    vale: float = 0.0,
+    desconto: float = 0.0,
+    bonus_extra: float = 0.0,
+    bonus_sabados: float = 0.0,
+    bonus_feriado: float = 0.0,
+    cnpj_motorista: str = "SEM CNPJ",
+) -> bytes:
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
         df_dia_export = df_dia.copy()
@@ -2246,6 +2262,241 @@ def criar_excel_fechamento(df_dia, df_entregas, df_pdf_info) -> bytes:
                 ws.set_column(idx, idx, width)
                 if any(x in col.lower() for x in ["valor", "total"]):
                     ws.set_column(idx, idx, 16, money_fmt)
+
+        # Aba adicional no mesmo formato do relatório de entregas em PDF,
+        # incluindo os adicionais do recibo: acareação, bônus, vale e desconto.
+        ws_rel = workbook.add_worksheet("Relatorio de entregas")
+        writer.sheets["Relatorio de entregas"] = ws_rel
+
+        laranja_claro = "#FBE4D5"
+        laranja_linha = "#F4B183"
+        branco = "#FFFFFF"
+        preto = "#000000"
+
+        fmt_titulo = workbook.add_format({
+            "bold": True, "font_size": 14, "align": "center", "valign": "vcenter",
+            "font_color": preto,
+        })
+        fmt_header_laranja = workbook.add_format({
+            "bold": True, "align": "center", "valign": "vcenter",
+            "bg_color": laranja_claro, "border": 1, "border_color": laranja_linha,
+            "font_color": preto,
+        })
+        fmt_celula = workbook.add_format({
+            "align": "center", "valign": "vcenter",
+            "border": 1, "border_color": laranja_linha,
+            "font_color": preto,
+        })
+        fmt_celula_bold = workbook.add_format({
+            "bold": True, "align": "center", "valign": "vcenter",
+            "border": 1, "border_color": laranja_linha,
+            "font_color": preto,
+        })
+        fmt_total_laranja = workbook.add_format({
+            "bold": True, "align": "center", "valign": "vcenter",
+            "bg_color": laranja_claro, "border": 1, "border_color": laranja_linha,
+            "font_color": preto,
+        })
+        fmt_kg = workbook.add_format({
+            "align": "center", "valign": "vcenter",
+            "bg_color": "#F2F2F2", "border": 1, "border_color": laranja_linha,
+            "font_color": preto,
+        })
+        fmt_moeda_rel = workbook.add_format({
+            "num_format": 'R$ #,##0.00',
+            "align": "center", "valign": "vcenter",
+            "border": 1, "border_color": laranja_linha,
+            "font_color": preto,
+        })
+        fmt_moeda_total = workbook.add_format({
+            "bold": True, "num_format": 'R$ #,##0.00',
+            "align": "center", "valign": "vcenter",
+            "bg_color": laranja_claro, "border": 1, "border_color": laranja_linha,
+            "font_color": preto,
+        })
+
+        def _fmt_data_excel(v):
+            try:
+                data = pd.to_datetime(v, errors="coerce")
+                if pd.isna(data):
+                    return ""
+                return data.strftime("%d/%m/%Y")
+            except Exception:
+                return str(v or "")
+
+        def _fmt_num_excel(v):
+            try:
+                valor = float(v)
+                if abs(valor - int(valor)) < 0.0001:
+                    return int(valor)
+                return round(valor, 2)
+            except Exception:
+                return 0
+
+        df_rel = df_relatorio.copy() if df_relatorio is not None else pd.DataFrame()
+        if df_rel.empty:
+            df_rel = pd.DataFrame(columns=[
+                "Data Rota", "Pedido", "CEP Prefixo", "Valor CEP",
+                "KG Excedente", "Valor Excedente KG", "Total Entrega"
+            ])
+
+        if "Data Rota" in df_rel.columns:
+            df_rel["Data Rota"] = pd.to_datetime(df_rel["Data Rota"], errors="coerce")
+        else:
+            df_rel["Data Rota"] = pd.NaT
+
+        if "CEP Prefixo" not in df_rel.columns:
+            if "CEP" in df_rel.columns:
+                df_rel["CEP Prefixo"] = (
+                    df_rel["CEP"].astype(str).str.replace(r"\D", "", regex=True).str.zfill(8).str[:3]
+                )
+            else:
+                df_rel["CEP Prefixo"] = ""
+
+        for col in ["Valor CEP", "KG Excedente", "Valor Excedente KG", "Total Entrega"]:
+            if col not in df_rel.columns:
+                df_rel[col] = 0.0
+            df_rel[col] = df_rel[col].fillna(0).astype(float)
+
+        if "Pedido" not in df_rel.columns:
+            df_rel["Pedido"] = ""
+
+        df_rel = df_rel.sort_values(["Data Rota", "CEP Prefixo", "Pedido"], kind="mergesort")
+
+        total_entregas_rel = int(len(df_rel))
+        total_valor_entregas = float(df_rel["Valor CEP"].sum())
+        total_valor_kg = float(df_rel["Valor Excedente KG"].sum())
+        subtotal_base = float(df_rel["Total Entrega"].sum())
+
+        acareacao = max(0.0, to_float(acareacao))
+        vale = max(0.0, to_float(vale))
+        desconto = max(0.0, to_float(desconto))
+        bonus_extra = max(0.0, to_float(bonus_extra))
+        bonus_sabados = max(0.0, to_float(bonus_sabados))
+        bonus_feriado = max(0.0, to_float(bonus_feriado))
+        total_geral = subtotal_base + acareacao + bonus_extra + bonus_sabados + bonus_feriado - vale - desconto
+
+        periodo_txt = f"{_fmt_data_excel(data_inicio_relatorio)} a {_fmt_data_excel(data_fim_relatorio)}".strip()
+        if periodo_txt == "a":
+            periodo_txt = ""
+        quinzena_txt = limpar_texto(quinzena_relatorio) or "Não informado"
+        motorista_txt = limpar_texto(motorista_relatorio).upper()
+        cnpj_txt = limpar_texto(cnpj_motorista) or obter_cnpj_motorista(motorista_txt)
+
+        ws_rel.set_column("A:A", 14)
+        ws_rel.set_column("B:B", 35)
+        ws_rel.set_column("C:C", 13)
+        ws_rel.set_column("D:D", 14)
+        ws_rel.set_column("E:E", 14)
+        ws_rel.set_column("F:F", 16)
+
+        ws_rel.merge_range("A1:F1", "Relatorio de entregas realizadas", fmt_titulo)
+
+        ws_rel.merge_range("A3:C3", "Nome do Entregador", fmt_header_laranja)
+        ws_rel.merge_range("D3:E3", "CNPJ", fmt_header_laranja)
+        ws_rel.write("F3", "Quinzena", fmt_header_laranja)
+
+        ws_rel.merge_range("A4:C4", motorista_txt, fmt_celula)
+        ws_rel.merge_range("D4:E4", cnpj_txt, fmt_celula)
+        ws_rel.write("F4", quinzena_txt, fmt_celula)
+
+        ws_rel.merge_range("A5:C5", "Período", fmt_header_laranja)
+        ws_rel.merge_range("D5:E5", "Total de Entregas", fmt_header_laranja)
+        ws_rel.write("F5", "Total do Relatório", fmt_header_laranja)
+
+        ws_rel.merge_range("A6:C6", periodo_txt, fmt_celula)
+        ws_rel.merge_range("D6:E6", total_entregas_rel, fmt_celula)
+        ws_rel.write_number("F6", total_geral, fmt_moeda_rel)
+
+        linha_atual = 8
+        headers_rel = ["DATA", "DESCRIÇÃO", "CEP", "VALOR", "QUANTIDADE", "TOTAL"]
+        for col_idx, header in enumerate(headers_rel):
+            ws_rel.write(linha_atual, col_idx, header, fmt_header_laranja)
+        linha_atual += 1
+
+        if not df_rel.empty:
+            df_resumo = df_rel.copy()
+            df_resumo["Data Agrupamento"] = pd.to_datetime(df_resumo["Data Rota"], errors="coerce").dt.date
+            df_resumo["CEP Prefixo"] = df_resumo["CEP Prefixo"].astype(str).apply(normalizar_prefixo_cep)
+            resumo_data_cep = (
+                df_resumo.groupby(["Data Agrupamento", "CEP Prefixo", "Valor CEP"], dropna=False)
+                .agg(
+                    Quantidade=("Pedido", "size"),
+                    Total=("Valor CEP", "sum"),
+                    KG_Excedente=("KG Excedente", "sum"),
+                    Total_KG=("Valor Excedente KG", "sum"),
+                    Total_Geral=("Total Entrega", "sum"),
+                )
+                .reset_index()
+                .sort_values(["Data Agrupamento", "CEP Prefixo", "Valor CEP"], kind="mergesort")
+            )
+
+            for _, row in resumo_data_cep.iterrows():
+                data_txt = _fmt_data_excel(row.get("Data Agrupamento"))
+                cep_prefixo = normalizar_prefixo_cep(row.get("CEP Prefixo", ""))
+                valor_cep = float(row.get("Valor CEP", 0) or 0)
+                qtd = int(row.get("Quantidade", 0) or 0)
+                total_entregas_cep = float(row.get("Total", 0) or 0)
+                kg_excedente = float(row.get("KG_Excedente", 0) or 0)
+                total_kg = float(row.get("Total_KG", 0) or 0)
+                total_linha = float(row.get("Total_Geral", 0) or 0)
+
+                ws_rel.write(linha_atual, 0, data_txt, fmt_celula)
+                ws_rel.write(linha_atual, 1, "Entregas realizadas", fmt_celula)
+                ws_rel.write(linha_atual, 2, cep_prefixo, fmt_celula)
+                ws_rel.write_number(linha_atual, 3, valor_cep, fmt_moeda_rel)
+                ws_rel.write_number(linha_atual, 4, qtd, fmt_celula)
+                ws_rel.write_number(linha_atual, 5, total_entregas_cep, fmt_moeda_rel)
+                linha_atual += 1
+
+                if kg_excedente > 0:
+                    ws_rel.write(linha_atual, 0, data_txt, fmt_kg)
+                    ws_rel.write(linha_atual, 1, "Kg excedente acima de 10kg", fmt_kg)
+                    ws_rel.write(linha_atual, 2, cep_prefixo, fmt_kg)
+                    ws_rel.write_number(linha_atual, 3, 0.30, fmt_moeda_rel)
+                    ws_rel.write_number(linha_atual, 4, _fmt_num_excel(kg_excedente), fmt_kg)
+                    ws_rel.write_number(linha_atual, 5, total_kg, fmt_moeda_rel)
+                    linha_atual += 1
+
+                    ws_rel.write(linha_atual, 0, data_txt, fmt_kg)
+                    ws_rel.write(linha_atual, 1, "Total com kg excedente", fmt_kg)
+                    ws_rel.write(linha_atual, 2, cep_prefixo, fmt_kg)
+                    ws_rel.write(linha_atual, 3, "", fmt_kg)
+                    ws_rel.write(linha_atual, 4, "", fmt_kg)
+                    ws_rel.write_number(linha_atual, 5, total_linha, fmt_moeda_rel)
+                    linha_atual += 1
+
+        ws_rel.write(linha_atual, 0, "", fmt_total_laranja)
+        ws_rel.write(linha_atual, 1, "TOTAL DAS ENTREGAS", fmt_total_laranja)
+        ws_rel.write(linha_atual, 2, "", fmt_total_laranja)
+        ws_rel.write(linha_atual, 3, "", fmt_total_laranja)
+        ws_rel.write_number(linha_atual, 4, total_entregas_rel, fmt_total_laranja)
+        ws_rel.write_number(linha_atual, 5, subtotal_base, fmt_moeda_total)
+        linha_atual += 2
+
+        totais = [
+            ("Total Entregas", total_valor_entregas),
+            ("Total Kg Excedente", total_valor_kg),
+            ("Subtotal", subtotal_base),
+            ("Acareação", acareacao),
+            ("Bônus Extra", bonus_extra),
+            ("Bônus Sábados", bonus_sabados),
+            ("Bônus Feriado", bonus_feriado),
+            ("Vale", -vale),
+            ("Desconto", -desconto),
+            ("TOTAL DO RELATÓRIO", total_geral),
+        ]
+
+        col_ini_totais = 2
+        for i, (rotulo, valor) in enumerate(totais):
+            fmt_label = fmt_total_laranja if i == len(totais) - 1 else fmt_celula_bold if rotulo == "TOTAL DO RELATÓRIO" else fmt_celula
+            fmt_valor = fmt_moeda_total if i == len(totais) - 1 else fmt_moeda_rel
+
+            ws_rel.write(linha_atual, col_ini_totais, rotulo, fmt_label)
+            ws_rel.write_number(linha_atual, col_ini_totais + 1, float(valor), fmt_valor)
+            linha_atual += 1
+
+        ws_rel.freeze_panes(8, 0)
 
     return output.getvalue()
 
@@ -3448,6 +3699,8 @@ def idx(col):
 # BLOQUEIO DAS CONFIGURAÇÕES DE COLUNAS
 # =========================================================
 SENHA_CONFIGURACAO = "2305"
+SENHA_BONUS = "0105"
+
 if "configuracoes_desbloqueadas" not in st.session_state:
     st.session_state["configuracoes_desbloqueadas"] = False
 
@@ -3608,16 +3861,228 @@ with c4:
 
 # =========================================================
 # =========================================================
-# FECHAMENTO DIÁRIO
+# INDICADOR DO MOTORISTA ACIMA DO FECHAMENTO DIÁRIO
 # =========================================================
 if df_dia.empty:
     st.warning("Nenhuma entrega paga foi encontrada com as regras configuradas.")
     st.stop()
 
-motoristas = sorted([
-    m for m in df_dia["Motorista Final"].fillna("").astype(str).str.strip().unique()
-    if m
-])
+# IMPORTANTE:
+# O indicador do motorista usa SOMENTE informações do Excel.
+# Ele não usa PDF e não usa df_pagamento como fallback, porque df_pagamento contém
+# apenas entregas pagas e pode mascarar devoluções/recusas/não entregues.
+
+df_metricas_fonte_excel = pd.DataFrame()
+if isinstance(df_metricas_excel, pd.DataFrame) and not df_metricas_excel.empty:
+    df_metricas_fonte_excel = df_metricas_excel.copy()
+elif isinstance(df_bonus_excel, pd.DataFrame) and not df_bonus_excel.empty:
+    # Também é uma base montada a partir do Excel. Mantida apenas como compatibilidade.
+    df_metricas_fonte_excel = df_bonus_excel.copy()
+
+colunas_minimas_indicador = {"Motorista Final", "Data Entrega", "Pedido"}
+indicador_excel_disponivel = (
+    not df_metricas_fonte_excel.empty
+    and colunas_minimas_indicador.issubset(set(df_metricas_fonte_excel.columns))
+)
+
+if indicador_excel_disponivel:
+    motoristas = sorted([
+        m for m in df_metricas_fonte_excel["Motorista Final"].fillna("").astype(str).str.upper().str.strip().unique()
+        if m
+    ])
+else:
+    motoristas = sorted([m for m in df_dia["Motorista Final"].fillna("").astype(str).unique() if m.strip()])
+
+# O indicador usa o primeiro motorista quando houver apenas um.
+# Quando houver mais de um motorista, o usuário pode selecionar qual deseja visualizar.
+if len(motoristas) == 1:
+    motorista_indicador = motoristas[0]
+else:
+    motorista_indicador = st.selectbox(
+        "Motorista para o indicador",
+        motoristas,
+        index=0 if motoristas else None,
+        key="motorista_indicador_dashboard",
+    )
+
+# Período do indicador: calculado somente em cima da data do Excel.
+# Opções:
+# - 1ª Quinzena: dia 01 até 15
+# - 2ª Quinzena: dia 16 até fim do mês
+# - Mês todo: todos os dias disponíveis no Excel
+periodo_indicador = st.radio(
+    "Período do indicador",
+    ["1ª Quinzena", "2ª Quinzena", "Mês completo"],
+    index=2,
+    horizontal=True,
+    key="periodo_indicador_dashboard",
+)
+
+if indicador_excel_disponivel:
+    datas_indicador = pd.to_datetime(df_metricas_fonte_excel["Data Entrega"], errors="coerce").dropna()
+else:
+    datas_indicador = pd.Series(dtype="datetime64[ns]")
+
+# O indicador deve acompanhar o mesmo mês do fechamento/PDF carregado.
+# Antes ele filtrava apenas pelo dia 01-15 ou 16-31 em todos os meses do Excel,
+# o que fazia entrar pedido de outro mês e aumentava indevidamente o total.
+if isinstance(df_dia, pd.DataFrame) and not df_dia.empty and "Data Rota" in df_dia.columns:
+    datas_base_indicador = pd.to_datetime(df_dia["Data Rota"], errors="coerce").dropna()
+else:
+    datas_base_indicador = pd.Series(dtype="datetime64[ns]")
+
+if not datas_base_indicador.empty:
+    data_base_indicador = datas_base_indicador.min()
+    ano_indicador = int(data_base_indicador.year)
+    mes_indicador = int(data_base_indicador.month)
+else:
+    data_base_indicador = datas_indicador.min() if not datas_indicador.empty else pd.Timestamp(datetime.now())
+    ano_indicador = int(data_base_indicador.year)
+    mes_indicador = int(data_base_indicador.month)
+
+data_inicio_indicador = pd.Timestamp(year=ano_indicador, month=mes_indicador, day=1).date()
+data_fim_indicador = (pd.Timestamp(year=ano_indicador, month=mes_indicador, day=1) + pd.offsets.MonthEnd(0)).date()
+
+total_pedidos_metricas_motorista = 0
+entregas_realizadas_metricas_periodo = 0
+entregas_pendentes_metricas_motorista = 0
+percentual_sucesso_metricas_motorista = 0.0
+df_metricas_periodo = pd.DataFrame()
+
+if indicador_excel_disponivel:
+    df_metricas_periodo = df_metricas_fonte_excel.copy()
+    df_metricas_periodo["Motorista Final"] = df_metricas_periodo["Motorista Final"].fillna("").astype(str).str.upper().str.strip()
+    df_metricas_periodo["Pedido"] = df_metricas_periodo["Pedido"].fillna("").astype(str).str.strip()
+    df_metricas_periodo["Pedido Chave Indicador"] = df_metricas_periodo["Pedido"].apply(normalizar_pedido_indicador)
+    df_metricas_periodo["Data Entrega DT"] = pd.to_datetime(df_metricas_periodo["Data Entrega"], errors="coerce").dt.date
+
+    df_metricas_periodo = df_metricas_periodo[
+        (df_metricas_periodo["Motorista Final"] == str(motorista_indicador).upper().strip())
+        & (df_metricas_periodo["Data Entrega DT"] >= data_inicio_indicador)
+        & (df_metricas_periodo["Data Entrega DT"] <= data_fim_indicador)
+        & (df_metricas_periodo["Pedido Chave Indicador"] != "")
+    ].copy()
+
+    # Aplica a quinzena escolhida usando somente a data do Excel.
+    if not df_metricas_periodo.empty:
+        dia_entrega = pd.to_datetime(df_metricas_periodo["Data Entrega DT"], errors="coerce").dt.day
+        if periodo_indicador == "1ª Quinzena":
+            df_metricas_periodo = df_metricas_periodo[dia_entrega.between(1, 15, inclusive="both")].copy()
+        elif periodo_indicador == "2ª Quinzena":
+            df_metricas_periodo = df_metricas_periodo[dia_entrega >= 16].copy()
+        # Mês todo: não aplica filtro adicional.
+
+    # Garante uma linha única por pedido.
+    # Alguns pedidos aparecem repetidos no Excel com a mesma AWB/pedido,
+    # porém em datas diferentes ou após atualizações de status.
+    # O indicador deve considerar apenas 1 entrega por pedido.
+    df_metricas_periodo = df_metricas_periodo.sort_values(
+        by=["Data Entrega DT"],
+        ascending=True,
+    ).drop_duplicates(
+        subset=["Pedido Chave Indicador"],
+        keep="last",
+    )
+
+    total_pedidos_metricas_motorista = int(len(df_metricas_periodo))
+
+    if "É Entregue" in df_metricas_periodo.columns and "É Ocorrência" in df_metricas_periodo.columns:
+        entregas_realizadas_metricas_periodo = int((
+            df_metricas_periodo["É Entregue"].fillna(False).astype(bool)
+            & ~df_metricas_periodo["É Ocorrência"].fillna(False).astype(bool)
+        ).sum())
+    elif "Entrega Paga" in df_metricas_periodo.columns:
+        entregas_realizadas_metricas_periodo = int(df_metricas_periodo["Entrega Paga"].fillna(False).astype(bool).sum())
+    else:
+        # Sem coluna de status classificado, não presume 100%.
+        # Assim evitamos mascarar devolvidos/recusados como entregues.
+        entregas_realizadas_metricas_periodo = 0
+
+    entregas_pendentes_metricas_motorista = max(
+        0,
+        total_pedidos_metricas_motorista - entregas_realizadas_metricas_periodo,
+    )
+
+    percentual_sucesso_metricas_motorista = (
+        (entregas_realizadas_metricas_periodo / total_pedidos_metricas_motorista) * 100
+        if total_pedidos_metricas_motorista > 0
+        else 0.0
+    )
+else:
+    st.warning(
+        "Não foi possível montar o indicador somente pelo Excel. "
+        "Confira se as colunas de Pedido, Motivo 1, Data e Motorista estão selecionadas corretamente."
+    )
+
+st.markdown("## Indicador do motorista no período selecionado")
+st.caption(
+    f"O indicador considera todos os pedidos destinados ao motorista no Excel dentro do período selecionado: {periodo_indicador}. "
+    "A porcentagem é calculada usando Motivo 1: confirmações de entrega contam como realizadas; ocorrências configuradas no sidebar contam como não realizadas."
+)
+
+col_gauge, col_cards = st.columns([1.15, 2.25])
+
+with col_gauge:
+    st.markdown(
+        renderizar_medidor_sucesso(percentual_sucesso_metricas_motorista),
+        unsafe_allow_html=True,
+    )
+
+with col_cards:
+    c_ind1, c_ind2, c_ind3, c_ind4 = st.columns(4)
+
+    with c_ind1:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Sucesso</div>
+            <div class="kpi-value">{percentual_sucesso_metricas_motorista:.1f}%</div>
+            <div class="small-note">de 100%</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c_ind2:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Entregas realizadas dentro do prazo</div>
+            <div class="kpi-value">{entregas_realizadas_metricas_periodo}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c_ind3:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Ocorrência/Insucesso</div>
+            <div class="kpi-value">{entregas_pendentes_metricas_motorista}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c_ind4:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Total destinados</div>
+            <div class="kpi-value">{total_pedidos_metricas_motorista}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+if not df_metricas_periodo.empty:
+    with st.expander("Ver pedidos considerados no indicador", expanded=False):
+        df_metricas_view = df_metricas_periodo.copy()
+        df_metricas_view = df_metricas_view.drop(columns=["Pedido Chave Indicador"], errors="ignore")
+        cols_metricas = [
+            "Motorista Final",
+            "Data Entrega",
+            "Pedido",
+            "Status",
+            "Motivo 1",
+            "Status Indicador",
+            "Entrega Paga",
+            "É Entregue",
+            "É Ocorrência",
+        ]
+        cols_metricas = [c for c in cols_metricas if c in df_metricas_view.columns]
+        st.dataframe(df_metricas_view[cols_metricas], use_container_width=True, height=260)
+
+st.markdown("---")
 
 st.markdown('<div class="section-heading">Fechamento diário por entregador</div>', unsafe_allow_html=True)
 
@@ -3743,7 +4208,30 @@ with col_aj4:
 
 st.markdown("**Bônus automáticos pagos somente na 2ª quinzena**")
 
-col_b1, col_b3 = st.columns([1.1, 1.9])
+if "bonus_desbloqueado" not in st.session_state:
+    st.session_state["bonus_desbloqueado"] = False
+
+with st.expander("🔐 Liberação dos bônus de sábado e feriado", expanded=not st.session_state.get("bonus_desbloqueado", False)):
+    if st.session_state.get("bonus_desbloqueado", False):
+        st.success("Bônus desbloqueados para este recibo.")
+        if st.button("🔒 Bloquear bônus novamente", use_container_width=True):
+            st.session_state["bonus_desbloqueado"] = False
+            st.rerun()
+    else:
+        senha_bonus_digitada = st.text_input("Senha para liberar bônus", type="password")
+        if st.button("🔓 Liberar bônus", use_container_width=True):
+            if senha_bonus_digitada == SENHA_BONUS:
+                st.session_state["bonus_desbloqueado"] = True
+                st.success("Bônus liberados.")
+                st.rerun()
+            else:
+                st.error("Senha incorreta. Os bônus não serão aplicados.")
+
+bonus_bloqueado = not st.session_state.get("bonus_desbloqueado", False)
+if bonus_bloqueado:
+    st.warning("Bônus de sábado e feriado estão bloqueados. Informe a senha para liberar a aplicação no recibo.")
+
+col_b1, col_b2, col_b3 = st.columns([1.1, 1.4, 1.5])
 with col_b1:
     valor_bonus_por_entrega = st.number_input(
         "Valor por entrega bônus",
@@ -3751,7 +4239,17 @@ with col_b1:
         value=2.0,
         step=0.5,
         format="%.2f",
+        disabled=bonus_bloqueado,
         help="Valor usado para bônus de sábado e feriado. Hoje: R$ 2,00 por entrega.",
+    )
+with col_b2:
+    liberar_bonus_sabado = st.radio(
+        "Liberar bônus sábados?",
+        ["Não", "Sim"],
+        index=0,
+        horizontal=True,
+        disabled=bonus_bloqueado,
+        help="Marque Sim somente quando desejar aplicar o bônus de sábado no recibo. A conferência e o cálculo são feitos automaticamente pelo Excel.",
     )
 with col_b3:
     datas_feriado_txt = st.text_area(
@@ -3759,6 +4257,7 @@ with col_b3:
         value="",
         height=78,
         placeholder="Exemplo:\n01/05/2026\n09/07/2026",
+        disabled=bonus_bloqueado,
         help="Digite um feriado por linha. A dashboard buscará no Excel as entregas do motorista nessas datas.",
     )
 
@@ -3771,6 +4270,15 @@ df_recibo = df_recibo[
     & (df_recibo["Data Rota DT"] >= data_inicio_recibo)
     & (df_recibo["Data Rota DT"] <= data_fim_recibo)
 ].copy()
+
+# Valores padrão usados também na aba "Relatorio de entregas" do Excel consolidado.
+# Quando não houver dados para recibo, a exportação continua funcionando sem quebrar.
+acareacao_recibo = max(0.0, to_float(acareacao_recibo))
+vale_recibo = max(0.0, to_float(vale_recibo))
+desconto_recibo = max(0.0, to_float(desconto_recibo))
+bonus_extra_recibo = max(0.0, to_float(bonus_extra_recibo))
+bonus_sabados_recibo = 0.0
+bonus_feriado_recibo = 0.0
 
 
 if df_recibo.empty:
@@ -3826,7 +4334,7 @@ else:
         st.caption("Bônus calculado")
         st.markdown(f"### {moeda(bonus_sabado_calculado)}")
 
-    if quinzena_recibo == "2ª Quinzena":
+    if (not bonus_bloqueado) and quinzena_recibo == "2ª Quinzena" and liberar_bonus_sabado == "Sim":
         if veio_todos_sabados:
             bonus_sabados_recibo = bonus_sabado_calculado
             st.success(
@@ -3839,10 +4347,14 @@ else:
                 f"Bônus sábados não aplicado. Para liberar, o motorista precisa ter entrega em todos os sábados do mês. "
                 f"Sábados faltantes: {sabados_faltantes_txt}."
             )
-    elif quinzena_recibo != "2ª Quinzena":
+    elif (not bonus_bloqueado) and quinzena_recibo != "2ª Quinzena" and liberar_bonus_sabado == "Sim":
         st.info("Bônus de sábado foi conferido, mas só pode ser pago/aplicado na 2ª quinzena.")
+    elif bonus_bloqueado:
+        st.info("Bônus sábado não aplicado porque a liberação por senha está bloqueada.")
+    elif liberar_bonus_sabado == "Não":
+        st.info("Bônus sábado não aplicado manualmente. Altere para 'Sim' para aplicar, se a regra estiver liberada.")
 
-    if quinzena_recibo == "2ª Quinzena":
+    if (not bonus_bloqueado) and quinzena_recibo == "2ª Quinzena":
         bonus_feriado_recibo, qtd_entregas_feriado = calcular_bonus_feriados_excel(
             df_bonus_excel,
             motorista_recibo,
@@ -3856,7 +4368,9 @@ else:
                 f"{moeda(valor_bonus_por_entrega)} = {moeda(bonus_feriado_recibo)}."
             )
     else:
-        if datas_feriado_txt.strip():
+        if bonus_bloqueado:
+            st.info("Bônus feriado não aplicado porque a liberação por senha está bloqueada.")
+        elif datas_feriado_txt.strip():
             st.info("Bônus de feriado foi identificado apenas para pagamento na 2ª quinzena.")
         else:
             st.info("Bônus de feriados não entra na 1ª quinzena.")
@@ -3970,6 +4484,10 @@ cols_show = [c for c in cols_show if c in df_pagamento_display.columns]
 
 st.dataframe(df_pagamento_display[cols_show], use_container_width=True, height=520)
 
+if not df_bonus_excel.empty:
+    with st.expander("Base completa do Excel usada para bônus e métricas", expanded=False):
+        df_bonus_view = df_bonus_excel.copy()
+        st.dataframe(df_bonus_view, use_container_width=True, height=300)
 
 st.caption(
     "Regra ativa: quantidade de entregas baseada nas linhas válidas do PDF com status fechado no Excel. "
@@ -3979,7 +4497,23 @@ st.caption(
 st.markdown("---")
 st.markdown('<div class="section-heading">Exportação</div>', unsafe_allow_html=True)
 
-excel_bytes = criar_excel_fechamento(df_dia, df_pagamento, df_pdf_info)
+excel_bytes = criar_excel_fechamento(
+    df_dia,
+    df_pagamento,
+    df_pdf_info,
+    df_relatorio=df_recibo.drop(columns=["Data Rota DT"], errors="ignore"),
+    motorista_relatorio=motorista_recibo,
+    data_inicio_relatorio=data_inicio_recibo,
+    data_fim_relatorio=data_fim_recibo,
+    quinzena_relatorio=quinzena_recibo,
+    acareacao=acareacao_recibo,
+    vale=vale_recibo,
+    desconto=desconto_recibo,
+    bonus_extra=bonus_extra_recibo,
+    bonus_sabados=bonus_sabados_recibo,
+    bonus_feriado=bonus_feriado_recibo,
+    cnpj_motorista=cnpj_motorista_recibo,
+)
 
 st.download_button(
     "📥 Baixar fechamento consolidado em Excel",
