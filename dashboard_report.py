@@ -3270,6 +3270,124 @@ def processar_fechamento_cache(
     return df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel, df_metricas_excel
 
 
+def processar_fechamento_com_progresso(
+    excel_payloads: Tuple[Tuple[str, bytes], ...],
+    pdf_payloads: Tuple[Tuple[str, bytes], ...],
+    col_pedido: str,
+    col_status: str,
+    col_motivo_indicador: Optional[str],
+    col_cep: str,
+    col_rota_excel: Optional[str],
+    col_data_excel: Optional[str],
+    col_motorista_excel: Optional[str],
+    status_entregue_tuple: Tuple[str, ...],
+    status_ocorrencia_tuple: Tuple[str, ...],
+    motoristas_extra_tuple: Tuple[Tuple[str, str, str], ...] = tuple(),
+    reajustes_cep_tuple: Tuple[Tuple[str, str, float], ...] = tuple(),
+    placas_excluidas_tuple: Tuple[str, ...] = tuple(),
+):
+    progresso_box = st.empty()
+    barra = st.progress(0)
+
+    def atualizar(percentual: int, mensagem: str):
+        barra.progress(percentual)
+        progresso_box.info(mensagem)
+
+    atualizar(10, "📄 Lendo planilha Excel...")
+
+    df_cep_final = montar_base_cep_final(reajustes_cep_tuple)
+    df_placas_final = montar_base_placas_final(motoristas_extra_tuple, placas_excluidas_tuple)
+
+    # Agora o Excel é usado somente como conferência:
+    # Pedido + Status + CEP. Todo o restante vem dos PDFs.
+    colunas_necessarias = tuple(dict.fromkeys([
+        c for c in [col_pedido, col_status, col_motivo_indicador, col_cep, col_rota_excel, col_data_excel, col_motorista_excel]
+        if c and str(c).strip()
+    ]))
+    df_excel_raw = carregar_excel_sistema_otimizado(excel_payloads, colunas_necessarias)
+    if df_excel_raw.empty:
+        atualizar(100, "✅ Fechamento concluído!")
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+
+    df_bonus_excel = preparar_base_bonus_excel(
+        df_excel_raw,
+        col_pedido=col_pedido,
+        col_status=col_status,
+        col_data_excel=col_data_excel,
+        col_motorista_excel=col_motorista_excel,
+        status_entregue=list(status_entregue_tuple),
+        status_ocorrencia=list(status_ocorrencia_tuple),
+        col_motivo_indicador=col_motivo_indicador,
+    )
+
+    df_metricas_excel = preparar_base_metricas_motorista_excel(
+        df_excel_raw,
+        col_pedido=col_pedido,
+        col_status=col_status,
+        col_data_excel=col_data_excel,
+        col_motorista_excel=col_motorista_excel,
+        status_entregue=list(status_entregue_tuple),
+        status_ocorrencia=list(status_ocorrencia_tuple),
+        col_motivo_indicador=col_motivo_indicador,
+    )
+
+    atualizar(30, "📑 Processando PDFs...")
+
+    pdf_infos = []
+    pdf_itens_frames = []
+    total_pdfs = max(1, len(pdf_payloads))
+    for idx_pdf, (nome_arquivo, conteudo) in enumerate(pdf_payloads, start=1):
+        info, itens_pdf = processar_pdf_cache(nome_arquivo, conteudo)
+        pdf_infos.append(info)
+        if not itens_pdf.empty:
+            pdf_itens_frames.append(itens_pdf)
+        progresso_pdf = 30 + int((idx_pdf / total_pdfs) * 20)
+        atualizar(min(progresso_pdf, 50), f"📑 Processando PDFs... ({idx_pdf}/{len(pdf_payloads)})")
+
+    df_pdf_info = pd.DataFrame(pdf_infos)
+    df_pdf_itens = pd.concat(pdf_itens_frames, ignore_index=True) if pdf_itens_frames else pd.DataFrame()
+
+    if df_pdf_itens.empty:
+        atualizar(100, "✅ Fechamento concluído!")
+        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel, df_metricas_excel
+
+    atualizar(55, "🔄 Cruzando dados...")
+
+    df_status_cep = preparar_planilha_status_cep(
+        df_excel_raw,
+        col_pedido=col_pedido,
+        col_status=col_status,
+        col_motivo_indicador=col_motivo_indicador,
+        col_cep=col_cep,
+        col_rota=col_rota_excel,
+    )
+    df_pedidos_pagos = filtrar_pedidos_pagos_excel(
+        df_status_cep,
+        list(status_entregue_tuple),
+        list(status_ocorrencia_tuple),
+    )
+
+    df_pagamento_base = montar_entregas_pagas_pdf(df_pedidos_pagos, df_pdf_itens)
+    if df_pagamento_base.empty:
+        atualizar(100, "✅ Fechamento concluído!")
+        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel, df_metricas_excel
+
+    atualizar(75, "💰 Calculando pagamentos...")
+
+    df_pagamento = calcular_pagamento(df_pagamento_base, df_cep_final, df_placas_final)
+
+    # Regra principal desta versão:
+    # contar a quantidade de entregas do PDF que possuem status fechado no Excel.
+    # Não deduplicar AWB/Pedido, pois o controle manual considera a ocorrência da entrega no manifesto.
+
+    df_dia = gerar_fechamento_diario(df_pagamento)
+
+    atualizar(95, "📊 Gerando dashboard...")
+    atualizar(100, "✅ Fechamento concluído!")
+
+    return df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel, df_metricas_excel
+
+
 # =========================================================
 # HEADER
 # =========================================================
@@ -3737,7 +3855,7 @@ processar = st.sidebar.button("🚀 Processar fechamento", use_container_width=T
 # PROCESSAMENTO
 # =========================================================
 if processar:
-    resultado_cache = processar_fechamento_cache(
+    resultado_cache = processar_fechamento_com_progresso(
         excel_payloads=tuple(excel_payloads),
         pdf_payloads=tuple(pdf_payloads),
         col_pedido=col_pedido,
