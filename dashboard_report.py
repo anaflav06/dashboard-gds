@@ -2216,14 +2216,12 @@ def criar_excel_fechamento(
     motorista_relatorio: str = "",
     data_inicio_relatorio=None,
     data_fim_relatorio=None,
-    quinzena_relatorio: str = "",
     acareacao_relatorio: float = 0.0,
     vale_relatorio: float = 0.0,
     desconto_relatorio: float = 0.0,
     bonus_extra_relatorio: float = 0.0,
     bonus_sabados_relatorio: float = 0.0,
     bonus_feriado_relatorio: float = 0.0,
-    cnpj_motorista_relatorio: str = "SEM CNPJ",
 ) -> bytes:
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
@@ -2241,23 +2239,63 @@ def criar_excel_fechamento(
             "Bônus Feri", "Vale", "Desconto",
         ]
         for col in colunas_adicionais:
-            df_dia_export[col] = float("nan")
-
-        for col in colunas_adicionais:
-            df_dia_export[col] = pd.to_numeric(df_dia_export[col], errors="coerce")
+            df_dia_export[col] = 0.0
+            df_dia_export[col] = pd.to_numeric(df_dia_export[col], errors="coerce").fillna(0.0)
 
         if not df_dia_export.empty:
-            subtotal_base = 0.0
             if "Total_Dia" in df_dia_export.columns:
-                subtotal_base = float(pd.to_numeric(df_dia_export["Total_Dia"], errors="coerce").fillna(0).sum())
+                df_dia_export["Subtotal"] = pd.to_numeric(
+                    df_dia_export["Total_Dia"],
+                    errors="coerce",
+                ).fillna(0.0)
 
-            df_dia_export.loc[df_dia_export.index[0], "Subtotal"] = subtotal_base
-            df_dia_export.loc[df_dia_export.index[0], "Acareação"] = to_float(acareacao_relatorio)
-            df_dia_export.loc[df_dia_export.index[0], "Bônus Extr"] = to_float(bonus_extra_relatorio)
-            df_dia_export.loc[df_dia_export.index[0], "Bônus Sáb"] = to_float(bonus_sabados_relatorio)
-            df_dia_export.loc[df_dia_export.index[0], "Bônus Feri"] = to_float(bonus_feriado_relatorio)
-            df_dia_export.loc[df_dia_export.index[0], "Vale"] = to_float(vale_relatorio)
-            df_dia_export.loc[df_dia_export.index[0], "Desconto"] = to_float(desconto_relatorio)
+            df_periodo = df_dia_export.copy()
+            if motorista_relatorio and "Motorista Final" in df_periodo.columns:
+                df_periodo = df_periodo[
+                    df_periodo["Motorista Final"].astype(str).str.upper().str.strip()
+                    == str(motorista_relatorio).upper().strip()
+                ].copy()
+
+            if not df_periodo.empty and "Data Rota" in df_periodo.columns and data_inicio_relatorio is not None and data_fim_relatorio is not None:
+                datas_periodo_tmp = pd.to_datetime(df_periodo["Data Rota"], errors="coerce").dt.date
+                inicio_tmp = pd.to_datetime(data_inicio_relatorio, errors="coerce").date()
+                fim_tmp = pd.to_datetime(data_fim_relatorio, errors="coerce").date()
+                df_periodo = df_periodo[(datas_periodo_tmp >= inicio_tmp) & (datas_periodo_tmp <= fim_tmp)].copy()
+
+            if df_periodo.empty:
+                df_periodo = df_dia_export.copy()
+
+            idx_primeiro = df_periodo.index[0]
+            idx_ultimo = df_periodo.index[-1]
+
+            df_dia_export.loc[idx_primeiro, "Acareação"] = to_float(acareacao_relatorio)
+            df_dia_export.loc[idx_primeiro, "Bônus Extr"] = to_float(bonus_extra_relatorio)
+            df_dia_export.loc[idx_primeiro, "Vale"] = to_float(vale_relatorio)
+            df_dia_export.loc[idx_primeiro, "Desconto"] = to_float(desconto_relatorio)
+
+            bonus_sabados_total = to_float(bonus_sabados_relatorio)
+            if bonus_sabados_total > 0 and "Data Rota" in df_periodo.columns:
+                datas_periodo = pd.to_datetime(df_periodo["Data Rota"], errors="coerce")
+                idx_sabados = df_periodo.index[datas_periodo.dt.weekday == 5].tolist()
+                if idx_sabados:
+                    if df_relatorio_entregas is not None and not df_relatorio_entregas.empty and "Data Rota" in df_relatorio_entregas.columns:
+                        df_bonus_sab = df_relatorio_entregas.copy()
+                        df_bonus_sab["Data Rota DT"] = pd.to_datetime(df_bonus_sab["Data Rota"], errors="coerce").dt.date
+                        df_bonus_sab = df_bonus_sab[pd.to_datetime(df_bonus_sab["Data Rota"], errors="coerce").dt.weekday == 5].copy()
+                        qtd_sabados_total = int(len(df_bonus_sab))
+                        valor_unitario_sabado = bonus_sabados_total / qtd_sabados_total if qtd_sabados_total > 0 else 0.0
+                        for idx_sab in idx_sabados:
+                            data_sab = pd.to_datetime(df_dia_export.loc[idx_sab, "Data Rota"], errors="coerce").date()
+                            qtd_data = int((df_bonus_sab["Data Rota DT"] == data_sab).sum())
+                            df_dia_export.loc[idx_sab, "Bônus Sáb"] = qtd_data * valor_unitario_sabado
+                    else:
+                        df_dia_export.loc[idx_sabados[0], "Bônus Sáb"] = bonus_sabados_total
+                else:
+                    df_dia_export.loc[idx_primeiro, "Bônus Sáb"] = bonus_sabados_total
+
+            bonus_feriado_total = to_float(bonus_feriado_relatorio)
+            if bonus_feriado_total > 0:
+                df_dia_export.loc[idx_ultimo, "Bônus Feri"] = bonus_feriado_total
 
         df_dia_export.to_excel(writer, index=False, sheet_name="Fechamento diario")
         df_entregas.to_excel(writer, index=False, sheet_name="Entregas pagas")
@@ -3811,20 +3849,17 @@ df_recibo = df_recibo[
     & (df_recibo["Data Rota DT"] <= data_fim_recibo)
 ].copy()
 
-# Dados usados para criar a nova aba "Relatorio entregas" no Excel consolidado.
-# Quando não houver recibo selecionado, a aba não é criada para evitar relatório vazio.
+# Dados usados para preencher os adicionais no Excel consolidado.
 df_relatorio_entregas_excel = pd.DataFrame()
 motorista_relatorio_excel = ""
 data_inicio_relatorio_excel = None
 data_fim_relatorio_excel = None
-quinzena_relatorio_excel = ""
 acareacao_relatorio_excel = 0.0
 vale_relatorio_excel = 0.0
 desconto_relatorio_excel = 0.0
 bonus_extra_relatorio_excel = 0.0
 bonus_sabados_relatorio_excel = 0.0
 bonus_feriado_relatorio_excel = 0.0
-cnpj_motorista_relatorio_excel = "SEM CNPJ"
 
 if df_recibo.empty:
     st.warning("Não há dados para gerar recibo com o motorista e período selecionados.")
@@ -3946,14 +3981,12 @@ else:
     motorista_relatorio_excel = motorista_recibo
     data_inicio_relatorio_excel = data_inicio_recibo
     data_fim_relatorio_excel = data_fim_recibo
-    quinzena_relatorio_excel = quinzena_recibo
     acareacao_relatorio_excel = acareacao_recibo
     vale_relatorio_excel = vale_recibo
     desconto_relatorio_excel = desconto_recibo
     bonus_extra_relatorio_excel = bonus_extra_recibo
     bonus_sabados_relatorio_excel = bonus_sabados_recibo
     bonus_feriado_relatorio_excel = bonus_feriado_recibo
-    cnpj_motorista_relatorio_excel = cnpj_motorista_recibo
 
     relatorio_pdf = gerar_relatorio_entregas_pdf(
         df_recibo.drop(columns=["Data Rota DT"], errors="ignore"),
@@ -4053,14 +4086,12 @@ excel_bytes = criar_excel_fechamento(
     motorista_relatorio_excel,
     data_inicio_relatorio_excel,
     data_fim_relatorio_excel,
-    quinzena_relatorio_excel,
     acareacao_relatorio_excel,
     vale_relatorio_excel,
     desconto_relatorio_excel,
     bonus_extra_relatorio_excel,
     bonus_sabados_relatorio_excel,
     bonus_feriado_relatorio_excel,
-    cnpj_motorista_relatorio_excel,
 )
 
 st.download_button(
@@ -4075,4 +4106,3 @@ st.caption(
     "Regra aplicada: pagamento por entrega realizada sem ocorrência, validando Pedido x Status no Excel e dados da entrega no PDF. "
     "KG_Excedente_Calculado: somente o que passou de 10kg em cada entrega, calculado a R$ 0,30 por kg excedente."
 )
-
