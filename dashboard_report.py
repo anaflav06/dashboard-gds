@@ -2241,7 +2241,10 @@ def criar_excel_fechamento(
             "Bônus Feri", "Vale", "Desconto",
         ]
         for col in colunas_adicionais:
-            df_dia_export[col] = ""
+            df_dia_export[col] = float("nan")
+
+        for col in colunas_adicionais:
+            df_dia_export[col] = pd.to_numeric(df_dia_export[col], errors="coerce")
 
         if not df_dia_export.empty:
             subtotal_base = 0.0
