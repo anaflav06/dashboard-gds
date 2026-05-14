@@ -3439,7 +3439,7 @@ def processar_fechamento_com_progresso(
         atualizar(100, "✅ Fechamento concluído!")
         return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel, df_metricas_excel, {}
 
-    atualizar(55, "🔄 Cruzando dados...")
+    atualizar(55, "🔄 Consolidando dados...")
 
     df_status_cep = preparar_planilha_status_cep(
         df_excel_raw,
