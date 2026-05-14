@@ -1612,6 +1612,94 @@ def preparar_planilha_status_cep(
     return out
 
 
+def montar_conferencia_awb_pdf_excel(df_pdf_itens: pd.DataFrame, df_status_cep: pd.DataFrame) -> Dict[str, object]:
+    """
+    Confere se todas as AWBs/Pedidos presentes nos PDFs também existem no Excel carregado.
+    Esta validação serve apenas como aviso visual para evitar fechamento com Excel incompleto.
+    """
+    resumo = {
+        "total_awb_pdf": 0,
+        "total_awb_excel_encontradas": 0,
+        "total_awb_nao_encontradas": 0,
+        "awbs_nao_encontradas": [],
+        "df_awbs_nao_encontradas": pd.DataFrame(columns=["AWB não encontrada no Excel", "Arquivo PDF", "Rota PDF", "Motorista PDF"]),
+    }
+
+    if df_pdf_itens is None or df_pdf_itens.empty or "Pedido" not in df_pdf_itens.columns:
+        return resumo
+
+    pdf = df_pdf_itens.copy()
+    pdf["AWB Normalizada"] = pdf["Pedido"].apply(normalizar_pedido_indicador)
+    pdf = pdf[pdf["AWB Normalizada"].astype(str).str.strip() != ""].copy()
+    pdf = pdf.drop_duplicates(subset=["AWB Normalizada"], keep="first")
+
+    resumo["total_awb_pdf"] = int(len(pdf))
+
+    if df_status_cep is None or df_status_cep.empty or "Pedido" not in df_status_cep.columns:
+        faltantes = pdf.copy()
+    else:
+        excel = df_status_cep.copy()
+        excel["AWB Normalizada"] = excel["Pedido"].apply(normalizar_pedido_indicador)
+        awbs_excel = set(excel["AWB Normalizada"].dropna().astype(str).str.strip())
+        awbs_excel.discard("")
+        faltantes = pdf[~pdf["AWB Normalizada"].isin(awbs_excel)].copy()
+
+    resumo["total_awb_nao_encontradas"] = int(len(faltantes))
+    resumo["total_awb_excel_encontradas"] = int(max(0, resumo["total_awb_pdf"] - resumo["total_awb_nao_encontradas"]))
+
+    if not faltantes.empty:
+        faltantes_display = faltantes.copy()
+        faltantes_display["AWB não encontrada no Excel"] = faltantes_display["Pedido"].astype(str).str.strip()
+        colunas_faltantes = [
+            "AWB não encontrada no Excel",
+            "Arquivo PDF",
+            "Rota PDF",
+            "Motorista PDF",
+        ]
+        colunas_faltantes = [c for c in colunas_faltantes if c in faltantes_display.columns]
+        faltantes_display = faltantes_display[colunas_faltantes].reset_index(drop=True)
+        resumo["awbs_nao_encontradas"] = faltantes_display["AWB não encontrada no Excel"].astype(str).tolist()
+        resumo["df_awbs_nao_encontradas"] = faltantes_display
+
+    return resumo
+
+
+def renderizar_aviso_conferencia_awb(conferencia_awb: Dict[str, object]) -> None:
+    """Mostra no topo da dashboard o status da conferência AWB PDF x Excel."""
+    if not conferencia_awb:
+        return
+
+    total_pdf = int(conferencia_awb.get("total_awb_pdf", 0) or 0)
+    total_excel_encontradas = int(conferencia_awb.get("total_awb_excel_encontradas", 0) or 0)
+    total_faltantes = int(conferencia_awb.get("total_awb_nao_encontradas", 0) or 0)
+    df_faltantes = conferencia_awb.get("df_awbs_nao_encontradas", pd.DataFrame())
+
+    if total_pdf <= 0:
+        return
+
+    if total_faltantes > 0:
+        st.markdown(
+            f"""
+            <div style="background:#fff1f2;border:1px solid #fecdd3;border-left:8px solid #dc2626;border-radius:18px;padding:18px 20px;margin:0 0 22px 0;box-shadow:0 8px 20px rgba(15,23,42,0.05);">
+                <div style="font-size:20px;font-weight:900;color:#991b1b;margin-bottom:10px;">🔴 ATENÇÃO — DIVERGÊNCIA ENTRE PDF E EXCEL</div>
+                <div style="font-size:15px;color:#7f1d1d;line-height:1.7;">
+                    <b>AWBs no PDF:</b> {total_pdf}<br>
+                    <b>AWBs do PDF encontradas no Excel:</b> {total_excel_encontradas}<br>
+                    <b>AWBs não encontradas no Excel:</b> {total_faltantes}
+                </div>
+                <div style="margin-top:10px;font-size:14px;color:#7f1d1d;">
+                    ⚠️ O Excel carregado não contém todas as entregas do PDF. Isso pode gerar valores incorretos no fechamento.
+                    Baixe/exporte o Excel completo antes de validar o pagamento.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if isinstance(df_faltantes, pd.DataFrame) and not df_faltantes.empty:
+            with st.expander(f"Ver AWBs não encontradas no Excel ({total_faltantes})", expanded=True):
+                st.dataframe(df_faltantes, use_container_width=True, hide_index=True, height=min(300, 80 + (35 * total_faltantes)))
+
 def filtrar_pedidos_pagos_excel(df: pd.DataFrame, status_entregue: List[str], status_ocorrencia: List[str]) -> pd.DataFrame:
     """
     Valida pagamento usando apenas o Excel:
@@ -3349,7 +3437,7 @@ def processar_fechamento_com_progresso(
 
     if df_pdf_itens.empty:
         atualizar(100, "✅ Fechamento concluído!")
-        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel, df_metricas_excel
+        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel, df_metricas_excel, {}
 
     atualizar(55, "🔄 Cruzando dados...")
 
@@ -3361,6 +3449,9 @@ def processar_fechamento_com_progresso(
         col_cep=col_cep,
         col_rota=col_rota_excel,
     )
+
+    conferencia_awb = montar_conferencia_awb_pdf_excel(df_pdf_itens, df_status_cep)
+
     df_pedidos_pagos = filtrar_pedidos_pagos_excel(
         df_status_cep,
         list(status_entregue_tuple),
@@ -3370,7 +3461,7 @@ def processar_fechamento_com_progresso(
     df_pagamento_base = montar_entregas_pagas_pdf(df_pedidos_pagos, df_pdf_itens)
     if df_pagamento_base.empty:
         atualizar(100, "✅ Fechamento concluído!")
-        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel, df_metricas_excel
+        return df_pdf_info, df_pdf_itens, pd.DataFrame(), pd.DataFrame(), df_bonus_excel, df_metricas_excel, conferencia_awb
 
     atualizar(75, "💰 Calculando pagamentos...")
 
@@ -3385,7 +3476,7 @@ def processar_fechamento_com_progresso(
     atualizar(95, "📊 Gerando dashboard...")
     atualizar(100, "✅ Fechamento concluído!")
 
-    return df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel, df_metricas_excel
+    return df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel, df_metricas_excel, conferencia_awb
 
 
 # =========================================================
@@ -3872,13 +3963,17 @@ if processar:
         placas_excluidas_tuple=placas_excluidas_tuple,
     )
 
-    # Compatibilidade: versões anteriores retornavam 5 itens; versões novas retornam 6.
+    # Compatibilidade: versões anteriores retornavam 5 ou 6 itens; versões novas retornam 7.
     # Caso algum cache antigo/ajuste intermediário retorne mais itens, pegamos apenas os necessários.
-    if len(resultado_cache) >= 6:
+    if len(resultado_cache) >= 7:
+        df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel, df_metricas_excel, conferencia_awb = resultado_cache[:7]
+    elif len(resultado_cache) >= 6:
         df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel, df_metricas_excel = resultado_cache[:6]
+        conferencia_awb = {}
     elif len(resultado_cache) == 5:
         df_pdf_info, df_pdf_itens, df_pagamento, df_dia, df_bonus_excel = resultado_cache
         df_metricas_excel = df_bonus_excel.copy() if isinstance(df_bonus_excel, pd.DataFrame) else pd.DataFrame()
+        conferencia_awb = {}
     else:
         raise ValueError(f"Retorno inesperado do processamento: {len(resultado_cache)} itens.")
     st.session_state["resultado_fechamento"] = {
@@ -3888,6 +3983,7 @@ if processar:
         "df_dia": df_dia,
         "df_bonus_excel": df_bonus_excel,
         "df_metricas_excel": df_metricas_excel,
+        "conferencia_awb": conferencia_awb,
     }
 
 if "resultado_fechamento" not in st.session_state:
@@ -3902,10 +3998,13 @@ df_dia = resultado["df_dia"]
 df_bonus_excel = resultado.get("df_bonus_excel", pd.DataFrame())
 df_metricas_excel = resultado.get("df_metricas_excel", df_bonus_excel if isinstance(df_bonus_excel, pd.DataFrame) else pd.DataFrame())
 df_metricas_excel = resultado.get("df_metricas_excel", pd.DataFrame())
+conferencia_awb = resultado.get("conferencia_awb", {})
 
 # =========================================================
 # DASHBOARD
 # =========================================================
+renderizar_aviso_conferencia_awb(conferencia_awb)
+
 total_entregas = int(len(df_pagamento)) if not df_pagamento.empty else 0
 total_motoristas = int(df_dia["Motorista Final"].nunique()) if not df_dia.empty else 0
 total_rotas = int(df_pagamento["Rota"].nunique()) if not df_pagamento.empty else 0
@@ -4392,21 +4491,6 @@ else:
             mime="application/pdf",
             use_container_width=True,
         )
-
-st.markdown("---")
-
-g1, g2 = st.columns(2)
-with g1:
-    fig = px.bar(df_dia_view, x="Data Rota", y="Total_Dia", color="Motorista Final", text="Total_Dia")
-    fig.update_traces(texttemplate="R$ %{text:.2f}", textposition="outside")
-    fig.update_layout(height=420, xaxis_title="", yaxis_title="Total dia")
-    st.plotly_chart(fig, use_container_width=True)
-
-with g2:
-    por_motorista = df_dia_view.groupby("Motorista Final", as_index=False)["Total_Dia"].sum()
-    fig2 = px.pie(por_motorista, names="Motorista Final", values="Total_Dia", hole=0.55)
-    fig2.update_layout(height=420)
-    st.plotly_chart(fig2, use_container_width=True)
 
 st.markdown("---")
 st.markdown('<div class="section-heading">Entregas consideradas para pagamento</div>', unsafe_allow_html=True)
