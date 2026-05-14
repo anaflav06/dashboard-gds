@@ -4121,7 +4121,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Opção de RD Fechada: substitui o cálculo normal da rota pelo valor fixo de R$ 250,00.
+# Opção de RD Fechada: substitui o cálculo normal da rota pelo valor fixo de R$ 350,00.
 df_rd_opcoes = df_pagamento.copy()
 df_rd_opcoes["Data Rota DT"] = pd.to_datetime(df_rd_opcoes["Data Rota"], errors="coerce").dt.date
 df_rd_opcoes = df_rd_opcoes[
@@ -4144,7 +4144,7 @@ with col_rd1:
         ["Não", "Sim"],
         horizontal=True,
         index=0,
-        help="Quando marcado como Sim, a RD selecionada passa a valer R$ 250,00 e ignora kg excedente e bônus daquela rota.",
+        help="Quando marcado como Sim, a RD selecionada passa a valer R$ 350,00 e ignora kg excedente e bônus daquela rota.",
     )
 
 with col_rd2:
@@ -4154,12 +4154,12 @@ with col_rd2:
             "Selecione as RDs fechadas",
             options=rds_disponiveis_fechada,
             default=[],
-            help="Cada RD selecionada será paga como RD Fechada no valor fixo de R$ 250,00.",
+            help="Cada RD selecionada será paga como RD Fechada no valor fixo de R$ 350,00.",
         )
         if rds_fechadas_recibo:
-            st.success(f"RD Fechada: {len(rds_fechadas_recibo)} RD(s) × R$ 250,00 = {moeda(len(rds_fechadas_recibo) * 250.0)}")
+            st.success(f"RD Fechada: {len(rds_fechadas_recibo)} RD(s) × R$ 350,00 = {moeda(len(rds_fechadas_recibo) * 350.0)}")
         else:
-            st.info("Selecione uma ou mais RDs para aplicar o valor fechado de R$ 250,00.")
+            st.info("Selecione uma ou mais RDs para aplicar o valor fechado de R$ 350,00.")
     else:
         rds_fechadas_recibo = []
 
@@ -4233,8 +4233,8 @@ df_recibo = df_recibo[
     & (df_recibo["Data Rota DT"] <= data_fim_recibo)
 ].copy()
 
-# Aplica RD Fechada no recibo/relatório: remove o cálculo normal da RD e substitui por R$ 250,00.
-df_recibo = aplicar_rd_fechada_recibo(df_recibo, rds_fechadas_recibo, valor_rd_fechada=250.0)
+# Aplica RD Fechada no recibo/relatório: remove o cálculo normal da RD e substitui por R$ 350,00.
+df_recibo = aplicar_rd_fechada_recibo(df_recibo, rds_fechadas_recibo, valor_rd_fechada=350.0)
 
 # Dados usados para preencher os adicionais no Excel consolidado.
 df_relatorio_entregas_excel = pd.DataFrame()
@@ -4381,10 +4381,10 @@ else:
 
             # Ajuste: o bônus de feriado informado/calculado deve continuar entrando no recibo,
             # no relatório e no Excel consolidado.
-            # A RD Fechada altera somente o valor das RDs selecionadas para R$ 250,00;
+            # A RD Fechada altera somente o valor das RDs selecionadas para R$ 350,00;
             # as demais regras do recibo continuam sendo aplicadas normalmente no fechamento.
 
-        st.info("RD Fechada aplicada somente nas RDs selecionadas. Essas RDs entram apenas com o valor fixo de R$ 250,00 e não recebem kg excedente, bônus de sábado ou bônus de feriado. As demais RDs seguem a regra normal de pagamento.")
+        st.info("RD Fechada aplicada somente nas RDs selecionadas. Essas RDs entram apenas com o valor fixo de R$ 350,00 e não recebem kg excedente, bônus de sábado ou bônus de feriado. As demais RDs seguem a regra normal de pagamento.")
 
     total_recibo = (
         subtotal_recibo
