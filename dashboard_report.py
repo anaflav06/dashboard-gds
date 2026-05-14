@@ -1980,7 +1980,7 @@ def gerar_fechamento_diario(df_pagamento: pd.DataFrame) -> pd.DataFrame:
 
 
 
-def aplicar_rd_fechada_recibo(df_base: pd.DataFrame, rds_fechadas: List[str], valor_rd_fechada: float = 250.0) -> pd.DataFrame:
+def aplicar_rd_fechada_recibo(df_base: pd.DataFrame, rds_fechadas: List[str], valor_rd_fechada: float = 350.0) -> pd.DataFrame:
     """Substitui as rotas selecionadas por uma linha única de RD Fechada.
 
     Regra: quando uma RD é fechada, ela passa a valer somente o valor fixo informado.
